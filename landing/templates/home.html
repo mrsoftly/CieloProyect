@@ -13,44 +13,96 @@
     </div>
   </div>
 
-  <div class="bg-light container-fluid py-5" >
-    <h2 class= "mb-4 display-5" style="text-align: center";>Algunos de nuestros destinos </h2>
-    <div class="row gy-4" style="color: black;">
+  <div class="bg-light container-fluid py-5">
+    <h2 class="mb-4 display-5 text-center">Algunos de nuestros destinos</h2>
+    <!-- Carrusel para móviles -->
+    <div class="d-block d-md-none">
+      <div id="destinosCarousel" class="carousel slide" data-bs-ride="carousel">
+        <div class="carousel-inner">
+          <!-- Primera tarjeta -->
+          <div class="carousel-item active">
+            <div class="card h-100">
+              <img src="https://simplydominican.com/wp-content/uploads/2023/09/best-beach-punta-cana.jpg" class="d-block mx-auto img-fluid">
+              <div class="card-body">
+                <p class="card-text">
+                  ¡Escapa al paraíso! Disfruta de las playas de arena blanca, aguas cristalinas y la emoción de aventuras tropicales. Punta Cana te espera para ofrecerte la escapada de tus sueños.
+                </p>
+              </div>
+            </div>
+          </div>
+          <!-- Segunda tarjeta -->
+          <div class="carousel-item">
+            <div class="card h-100">
+              <img src="https://viajes.nationalgeographic.com.es/medio/2018/03/01/machu-picchu_5ff969ae_1280x720.jpg" class="d-block mx-auto img-fluid" alt="...">
+              <div class="card-body">
+                <p class="card-text">
+                  Vive la magia de la historia y la naturaleza. Atrévete a explorar las antiguas ruinas de los Incas en Machu Picchu y conquista una de las maravillas del mundo mientras te sumerges en paisajes impresionantes.
+                </p>
+              </div>
+            </div>
+          </div>
+          <!-- Tercera tarjeta -->
+          <div class="carousel-item">
+            <div class="card h-100">
+              <img src="https://content.r9cdn.net/rimg/dimg/ac/93/63e66ec2-lm-943-16ac6629cb7.jpg?width=1366&height=768&xhint=2318&yhint=1373&crop=true" class="d-block mx-auto img-fluid" alt="...">
+              <div class="card-body">
+                <p class="card-text">
+                  La ciudad del amor te espera con sus encantos. Descubre la elegancia de sus calles, el arte en cada rincón y, por supuesto, la Torre Eiffel iluminando tus noches. París es mucho más que un destino, es una experiencia única.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Controles de navegación -->
+        <button class="carousel-control-prev" type="button" data-bs-target="#destinosCarousel" data-bs-slide="prev">
+          <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+          <span class="visually-hidden">Anterior</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#destinosCarousel" data-bs-slide="next">
+          <span class="carousel-control-next-icon" aria-hidden="true"></span>
+          <span class="visually-hidden">Siguiente</span>
+        </button>
+      </div>
+    </div>
+  
+    <!-- Tarjetas en fila para escritorio -->
+    <div class="row gy-4 d-none d-md-flex" style="color: black;">
       <!-- Primera tarjeta -->
       <div class="col-12 col-sm-6 col-md-4">
         <div class="card h-100">
-          <img src="https://simplydominican.com/wp-content/uploads/2023/09/best-beach-punta-cana.jpg" class="d-block mx-auto img-fluid";>
+          <img src="https://simplydominican.com/wp-content/uploads/2023/09/best-beach-punta-cana.jpg" class="d-block mx-auto img-fluid">
           <div class="card-body">
             <p class="card-text">
-               ¡Escapa al paraíso! Disfruta de las playas de arena blanca, aguas cristalinas y la emoción de aventuras tropicales. Punta Cana te espera para ofrecerte la escapada de tus sueños.
+              ¡Escapa al paraíso! Disfruta de las playas de arena blanca, aguas cristalinas y la emoción de aventuras tropicales. Punta Cana te espera para ofrecerte la escapada de tus sueños.
             </p>
           </div>
         </div>
-    </div>
-    <!-- Segunda tarjeta -->
-    <div class="col-12 col-sm-6 col-md-4">
-      <div class="card h-100">
-        <img src="https://viajes.nationalgeographic.com.es/medio/2018/03/01/machu-picchu_5ff969ae_1280x720.jpg" class="d-block mx-auto img-fluid" alt="...">
-        <div class="card-body">
-          <p class="card-text">
-            Vive la magia de la historia y la naturaleza. Atrévete a explorar las antiguas ruinas de los Incas en Machu Picchu y conquista una de las maravillas del mundo mientras te sumerges en paisajes impresionantes.
-          </p>
+      </div>
+      <!-- Segunda tarjeta -->
+      <div class="col-12 col-sm-6 col-md-4">
+        <div class="card h-100">
+          <img src="https://viajes.nationalgeographic.com.es/medio/2018/03/01/machu-picchu_5ff969ae_1280x720.jpg" class="d-block mx-auto img-fluid" alt="...">
+          <div class="card-body">
+            <p class="card-text">
+              Vive la magia de la historia y la naturaleza. Atrévete a explorar las antiguas ruinas de los Incas en Machu Picchu y conquista una de las maravillas del mundo mientras te sumerges en paisajes impresionantes.
+            </p>
+          </div>
         </div>
       </div>
-    </div>
-    <!-- Tercera tarjeta -->
-    <div class="col-12 col-sm-6 col-md-4">
-      <div class="card h-100">
-        <img src="https://content.r9cdn.net/rimg/dimg/ac/93/63e66ec2-lm-943-16ac6629cb7.jpg?width=1366&height=768&xhint=2318&yhint=1373&crop=true" class="d-block mx-auto img-fluid" alt="...">
-        <div class="card-body">
-          <p class="card-text">
-            La ciudad del amor te espera con sus encantos. Descubre la elegancia de sus calles, el arte en cada rincón y, por supuesto, la Torre Eiffel iluminando tus noches. París es mucho más que un destino, es una experiencia única.
-          </p>
+      <!-- Tercera tarjeta -->
+      <div class="col-12 col-sm-6 col-md-4">
+        <div class="card h-100">
+          <img src="https://content.r9cdn.net/rimg/dimg/ac/93/63e66ec2-lm-943-16ac6629cb7.jpg?width=1366&height=768&xhint=2318&yhint=1373&crop=true" class="d-block mx-auto img-fluid" alt="...">
+          <div class="card-body">
+            <p class="card-text">
+              La ciudad del amor te espera con sus encantos. Descubre la elegancia de sus calles, el arte en cada rincón y, por supuesto, la Torre Eiffel iluminando tus noches. París es mucho más que un destino, es una experiencia única.
+            </p>
+          </div>
         </div>
       </div>
     </div>
   </div>
-</div>
+  
 
 <section class="bg-light py-3 py-md-5">
   <div class="container">

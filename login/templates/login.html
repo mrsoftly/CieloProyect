@@ -27,46 +27,34 @@
     </form>
     <!-- Mostrar mensajes de éxito o error -->
     {% if messages %}
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        {% for message in messages %}
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
             <p>{{ message }}</p>
-        {% endfor %}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-    {% endif %}
-
-    <!-- Modal de Bootstrap para mostrar mensaje de inicio de sesión exitoso -->
-    <div class="modal fade" id="loginSuccessModal" tabindex="-1" aria-labelledby="loginSuccessModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="loginSuccessModalLabel">Inicio de sesión exitoso</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    ¡Has iniciado sesión correctamente!
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                </div>
-            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
-    </div>
+    {% endfor %}
+{% endif %}
+
 
     <!-- Scripts de Bootstrap (debe incluirse justo antes de cerrar el body) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
       document.addEventListener('DOMContentLoaded', function () {
-          // Verificar si el mensaje existe (se muestra solo si hay mensaje en el DOM)
+          // Buscar mensajes de éxito y error por sus IDs o clases
           var successMessage = document.getElementById('successMessage');
-          if (successMessage) {
-              var loginSuccessModal = new bootstrap.Modal(document.getElementById('loginSuccessModal'), {
+          var errorMessage = document.getElementById('errorMessage');
+          
+          if (successMessage || errorMessage) {
+              // Determinar qué modal mostrar según el mensaje encontrado
+              var modalId = successMessage ? 'loginSuccessModal' : 'loginErrorModal';
+              var messageModal = new bootstrap.Modal(document.getElementById(modalId), {
                   keyboard: false
               });
-              loginSuccessModal.show();  // Muestra el modal si hay un mensaje
+              messageModal.show();  // Muestra el modal correspondiente
           }
       });
   </script>
+  
   
   
 

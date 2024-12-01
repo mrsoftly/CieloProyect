@@ -6,10 +6,10 @@ def login_view(request):
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
-
+        
         # Verificar las credenciales
         user = authenticate(request, username=username, password=password)
-
+        
         if user is not None:
             # Si el usuario es autenticado correctamente, inicia sesión
             login(request, user)
@@ -18,5 +18,5 @@ def login_view(request):
         else:
             messages.error(request, "Credenciales incorrectas")
             return redirect('login')  # Redirigir a la página de inicio de sesión con el error
-
+    
     return render(request, 'login.html')
