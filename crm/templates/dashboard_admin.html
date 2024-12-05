@@ -1,0 +1,48 @@
+{% extends "basecrm.html" %}
+{% block content %}
+<div id="wrapper">
+    <div class="overlay"></div>
+
+    <!-- Sidebar -->
+<nav class="navbar navbar-inverse fixed-top" id="sidebar-wrapper" role="navigation">
+    <ul class="nav sidebar-nav">
+      <div class="sidebar-header">
+        <div class="sidebar-brand">
+          <div style="padding: 20px;">
+            {% load static %}
+            <img src="{% static 'images/logo.png'%}" alt="Logo" width="200" height="80" class="d-inline-block align-text-top" style="margin-top: -45px;">
+          </div>
+        </div>
+      </div>
+  
+      <!-- Enlaces con iconos -->
+      <li><a href="#"><i class="fas fa-home"></i> Home</a></li>
+      <li><a href="#"><i class="fas fa-user"></i> Perfil</a></li>
+      <li><a href="#"><i class="fas fa-cogs"></i> Configuración</a></li>
+      <li><a href="#"><i class="fas fa-envelope"></i> Mensajes</a></li>
+      <!-- Más enlaces con iconos -->
+      <li><a href="#"><i class="fas fa-search"></i> Buscar</a></li>
+      <li><a href="#"><i class="fas fa-shopping-cart"></i> Carrito</a></li>
+      <li><a href="{% url 'logout' %}"><i class="fa-duotone fa-solid fa-toggle-off"></i> Cerrar Sesion</a></li>
+    </ul>
+  </nav>
+  
+
+
+    <!-- AQUI ES DONDE VA EL CONTENIDO -->
+    <div id="page-content-wrapper">
+      <button type="button" class="hamburger is-closed" id="menu-toggle">
+        <span class="hamb-top"></span>
+        <span class="hamb-middle"></span>
+        <span class="hamb-bottom"></span>
+      </button>
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-8">
+            <h1> esta es la vista de administrador</h1>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

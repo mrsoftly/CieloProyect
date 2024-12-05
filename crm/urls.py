@@ -1,5 +1,8 @@
 from django.urls import path
-from . import views
+from .views import DashboardAdminView, DashboardAsesorView, acceso_denegado,logout_view
 urlpatterns = [
-    path('', views.crm_view, name='basecrm'),  # Ruta para la vista de login
+    path('ad_dashboard/', DashboardAdminView.as_view(), name='dashboard_admin'),
+    path('as_dashboard/', DashboardAsesorView.as_view(), name='dashboard_asesor'),
+    path('error/', acceso_denegado, name='404'),
+    path('logout/', logout_view, name='logout'),
 ]
