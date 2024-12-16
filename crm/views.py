@@ -26,13 +26,21 @@ class GroupRequiredMixin(UserPassesTestMixin):
 
 class DashboardAdminView(LoginRequiredMixin, GroupRequiredMixin, TemplateView):
     """Vista para dashboard de administradores"""
-    template_name = 'dashboard_admin.html'
+    template_name = 'info_admin.html'
     allowed_groups = ['admi']  # Solo accesible para el grupo Admin
 
 class DashboardAsesorView(LoginRequiredMixin, GroupRequiredMixin, TemplateView):
     """Vista para dashboard de asesores"""
-    template_name = 'dashboard_asesor.html'
+    template_name = 'info_asesor.html'
     allowed_groups = ['asesor']  # Solo accesible para el grupo Asesor
+
+def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Calcula si el usuario pertenece a un grupo específico
+        user = self.request.user
+        context['is_asesor'] = user.groups.filter(name='asesor').exists()
+        context['is_admin'] = user.groups.filter(name='admi').exists()
+        return context
 
 # Vista para manejar acceso denegado
 def acceso_denegado(request):
@@ -41,3 +49,9 @@ def acceso_denegado(request):
 def logout_view(request):
     logout(request)
     return redirect('home')
+def view_adclient(request):
+    return render(request,'ad_clientes.html')
+def view_ases(request):
+    return render(request,'ad_asesor.html')
+def view_adsales(request):
+    return render(request,'ad_ventas.html')
