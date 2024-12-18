@@ -1,110 +1,269 @@
 {% extends "dashboard_admin.html" %}
-{%block content%}
-<h2 class="container" style="display: grid; place-items: center; text-decoration: underline;">Resumen General</h2>
-<div class="container" style="display: grid; place-items: center">
+{% block title %} CRM AGENCIA CIELO {% endblock %}
+{% block content %}
+<header>
+    {% if user.is_authenticated %}
+    <div class="navbar">
+        <div class="welcome-message">
+            Bienvenido, {{ user.username }}
+        </div>
+    </div>
+    {% endif %}
+</header>
+
+<div class="container">
+    <h2 class="text-center title">Resumen General</h2>
+    
     <div class="row w-100">
+        <!-- Card: Presupuestos Recibidos -->
         <div class="col-lg-3">
-            <div class="card bg-c-blue order-card">
-                <div class="card-block">
-                    <h6 class="m-b-20"> Presupuestos Recibidos</h6>
-                    <h2 class="text-right"><i class="fa fa-cart-plus f-left"></i><span> 486</span></h2>
-                    <p class="m-b-0">total: <span class="f-right"> 351</span></p>
+            <div class="card bg-blue">
+                <div class="card-body">
+                    <h6 class="card-title">Presupuestos Recibidos</h6>
+                    <h2 class="card-number">{{ presupuestos_recibidos }}</h2>
+                    <p class="card-info">Total: <span class="right">{{ presupuestos_recibidos }}</span></p>
                 </div>
             </div>
         </div>
         
-        <div class="col-lg-3 ">
-            <div class="card bg-c-green order-card">
-                <div class="card-block">
-                    <h6 class="m-b-20">Presupuestos aceptados</h6>
-                    <h2 class="text-right"><i class="fa fa-rocket f-left"></i><span> 486</span></h2>
-                    <p class="m-b-0">total: <span class="f-right"> 351</span></p>
+        <!-- Card: Presupuestos Aceptados -->
+        <div class="col-lg-3">
+            <div class="card bg-green">
+                <div class="card-body">
+                    <h6 class="card-title">Presupuestos Aceptados</h6>
+                    <h2 class="card-number">{{ presupuestos_aceptados }}</h2>
+                    <p class="card-info">Total: <span class="right">{{ presupuestos_aceptados }}</span></p>
                 </div>
             </div>
         </div>
         
+        <!-- Card: Presupuestos a Revisión -->
         <div class="col-lg-3">
-            <div class="card bg-c-yellow order-card">
-                <div class="card-block">
-                    <h6 class="m-b-20">Presupuestos a revision</h6>
-                    <h2 class="text-right"><i class="fa fa-refresh f-left"></i><span> 486</span></h2>
-                    <p class="m-b-0">total: <span class="f-right"> 351</span></p>
+            <div class="card bg-yellow">
+                <div class="card-body">
+                    <h6 class="card-title">Presupuestos a Revisión</h6>
+                    <h2 class="card-number">{{ presupuestos_revision }}</h2>
+                    <p class="card-info">Total: <span class="right">{{ presupuestos_revision }}</span></p>
                 </div>
             </div>
         </div>
         
+        <!-- Card: Ganancias de la Semana -->
         <div class="col-lg-3">
-            <div class="card bg-c-pink order-card">
-                <div class="card-block">
-                    <h6 class="m-b-20">Ganancias de la semana</h6>
-                    <h2 class="text-right"><i class="fa fa-credit-card f-left"></i><span> 486</span></h2>
-                    <p class="m-b-0">total: <span class="f-right"> 351</span></p>
+            <div class="card bg-pink">
+                <div class="card-body">
+                    <h6 class="card-title">Ganancias de la Semana</h6>
+                    <h2 class="card-number">${{ ganancias_semanales }}</h2>
+                    <p class="card-info">Total: <span class="right">${{ ganancias_semanales }}</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráficos -->
+    <div class="row w-100 mt-4">
+        <!-- Gráfico de Ganancias Semanales -->
+        <div class="col-lg-6">
+            <div class="card bg-light-blue">
+                <div class="card-body">
+                    <h6 class="card-title">Ganancias Semanales</h6>
+                    <canvas id="gananciasSemanalesChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráfico de Ganancias Mensuales -->
+        <div class="col-lg-6">
+            <div class="card bg-light-green">
+                <div class="card-body">
+                    <h6 class="card-title">Ganancias Mensuales</h6>
+                    <canvas id="gananciasMensualesChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top 3 Vendedores -->
+    <div class="row w-100 mt-4">
+        <div class="col-lg-12">
+            <div class="card bg-light-yellow">
+                <div class="card-body">
+                    <h6 class="card-title">Top 3 Vendedores del Mes</h6>
+                    <div class="top-vendors">
+                        <ul>
+                            {% for vendedor in top_vendors %}
+                            <li>{{ vendedor.vendor }} - ${{ vendedor.total_sales }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-<!-- ========== asignar graficos de ventas semanales, top vendedor y ganancias del mes, tambien tienen ========== -->
-<!-- ========== que ir en cartas para que el diseno sea agradable a la vista ========== -->
 
+<!-- Incluir Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-
+<script>
+    // Obtener los datos de Python (pasados desde el contexto)
+    const gananciasSemanalesData = {{ ganancias_semanales|safe }};
+    const gananciasMensualesData = {{ ganancias_mensuales|safe }};
+    const semanas = {{ semanas|safe }}; // Suponiendo que semanas es un array de semanas
+    const meses = {{ meses|safe }}; // Suponiendo que meses es un array de meses
+    
+    // Crear el gráfico de Ganancias Semanales
+    const ctxSemanales = document.getElementById('gananciasSemanalesChart').getContext('2d');
+    const gananciasSemanalesChart = new Chart(ctxSemanales, {
+        type: 'line',
+        data: {
+            labels: semanas,  // Etiquetas para las semanas
+            datasets: [{
+                label: 'Ganancias Semanales',
+                data: gananciasSemanalesData,  // Datos de las ganancias semanales
+                borderColor: '#FF5733',  // Color de la línea
+                fill: false,
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Semana'
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Ganancia ($)'
+                    }
+                }
+            }
+        }
+    });
+    
+    // Crear el gráfico de Ganancias Mensuales
+    const ctxMensuales = document.getElementById('gananciasMensualesChart').getContext('2d');
+    const gananciasMensualesChart = new Chart(ctxMensuales, {
+        type: 'line',
+        data: {
+            labels: meses,  // Etiquetas para los meses
+            datasets: [{
+                label: 'Ganancias Mensuales',
+                data: gananciasMensualesData,  // Datos de las ganancias mensuales
+                borderColor: '#4CAF50',  // Color de la línea
+                fill: false,
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Mes'
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Ganancia ($)'
+                    }
+                }
+            }
+        }
+    });
+</script>
 <style>
-    body{
-    margin-top:20px;
-    background:#FAFAFA;
-}
-.order-card {
-    color: #fff;
-}
+    body {
+        background: #f7f7f7;
+        font-family: 'Arial', sans-serif;
+    }
 
-.bg-c-blue {
-    background: linear-gradient(45deg,#4099ff,#73b4ff);
-}
+    .navbar {
+        background-color: #00001c;
+        padding: 10px;
+        color: white;
+        text-align: center;
+    }
 
-.bg-c-green {
-    background: linear-gradient(45deg,#2ed8b6,#59e0c5);
-}
+    .welcome-message {
+        font-size: 18px;
+    }
 
-.bg-c-yellow {
-    background: linear-gradient(45deg,#FFB64D,#ffcb80);
-}
+    .title {
+        text-decoration: underline;
+        padding: 15px;
+    }
 
-.bg-c-pink {
-    background: linear-gradient(45deg,#FF5370,#ff869a);
-}
+    .card {
+        border-radius: 8px;
+        -webkit-box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+        box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+        transition: all 0.3s ease;
+    }
 
+    .card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
 
-.card {
-    border-radius: 5px;
-    -webkit-box-shadow: 0 1px 2.94px 0.06px rgba(4,26,55,0.16);
-    box-shadow: 0 1px 2.94px 0.06px rgba(4,26,55,0.16);
-    border: none;
-    margin-bottom: 30px;
-    -webkit-transition: all 0.3s ease-in-out;
-    transition: all 0.3s ease-in-out;
-}
+    .card-body {
+        padding: 20px;
+    }
 
-.card .card-block {
-    padding: 25px;
-}
+    .card-title {
+        font-size: 20px;
+        font-weight: bold;
+        color: #fff;
+    }
 
-.order-card i {
-    font-size: 26px;
-}
+    .card-number {
+        font-size: 32px;
+        color: #fff;
+        margin-top: 10px;
+    }
 
-.f-left {
-    float: left;
-}
+    .card-info {
+        font-size: 14px;
+        color: #fff;
+    }
 
-.f-right {
-    float: right;
-}
-h2.container {
-    text-decoration: underline;
-    display: grid;
-    place-items: center;
-    padding:10px;
-}
+    .right {
+        float: right;
+        font-weight: bold;
+    }
+
+    .bg-blue { background: linear-gradient(45deg, #4099ff, #73b4ff); }
+    .bg-green { background: linear-gradient(45deg, #2ed8b6, #59e0c5); }
+    .bg-yellow { background: linear-gradient(45deg, #FFB64D, #ffcb80); }
+    .bg-pink { background: linear-gradient(45deg, #FF5370, #ff869a); }
+    .bg-light-blue { background: #a3d8f0; }
+    .bg-light-green { background: #a2e4d7; }
+    .bg-light-yellow { background: #f1e2a7; }
+
+    .chart {
+        height: 150px;
+        background: #e0e0e0;
+        margin-top: 10px;
+        border-radius: 8px;
+    }
+
+    .top-vendors ul {
+        list-style-type: none;
+        padding: 0;
+    }
+
+    .top-vendors li {
+        font-size: 16px;
+        padding: 5px 0;
+    }
+
+    .top-vendors li:nth-child(even) {
+        background-color: #f7f7f7;
+    }
+
 </style>
-{%endblock%}
+{% endblock %}

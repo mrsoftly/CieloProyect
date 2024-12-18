@@ -1,0 +1,147 @@
+{% extends 'dashboard_admin.html' %}
+
+{% block title %}
+    {% if form.instance.pk %}
+        Editar Presupuesto - {{ form.instance.client }}
+    {% else %}
+        Nuevo Presupuesto
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="mb-0">
+                        {% if form.instance.pk %}
+                            Editar Información del Presupuesto
+                        {% else %}
+                            Registrar Nuevo Presupuesto
+                        {% endif %}
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.emission_date.id_for_label }}" class="form-label">Fecha de Emisión</label>
+                                {{ form.emission_date }}
+                                {% if form.emission_date.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.emission_date.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.client.id_for_label }}" class="form-label">Cliente</label>
+                                {{ form.client }}
+                                {% if form.client.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.client.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.itinerary.id_for_label }}" class="form-label">Itinerario</label>
+                                {{ form.itinerary }}
+                                {% if form.itinerary.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.itinerary.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.base_price.id_for_label }}" class="form-label">Precio Base</label>
+                                <input type="number" min="0" step="0.01" 
+                                       class="form-control {% if form.base_price.errors %}is-invalid{% endif %}" 
+                                       id="{{ form.base_price.id_for_label }}" 
+                                       name="{{ form.base_price.name }}" 
+                                       value="{{ form.base_price.value|default_if_none:'' }}">
+                                {% if form.base_price.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.base_price.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.sale_price.id_for_label }}" class="form-label">Precio de Venta</label>
+                                <input type="number" min="0" step="0.01" 
+                                       class="form-control {% if form.sale_price.errors %}is-invalid{% endif %}" 
+                                       id="{{ form.sale_price.id_for_label }}" 
+                                       name="{{ form.sale_price.name }}" 
+                                       value="{{ form.sale_price.value|default_if_none:'' }}">
+                                {% if form.sale_price.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.sale_price.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.state.id_for_label }}" class="form-label">Estado</label>
+                                {{ form.state }}
+                                {% if form.state.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.state.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Costo Total (Calculado)</label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       value="{{ form.instance.calculate_cost_price }}" 
+                                       disabled>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Fee de Venta (Calculado)</label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       value="{{ form.instance.calculate_sale_fee }}" 
+                                       disabled>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'budget_list' %}" class="btn btn-secondary">
+                                Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                {% if form.instance.pk %}
+                                    Actualizar Presupuesto
+                                {% else %}
+                                    Guardar Presupuesto
+                                {% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

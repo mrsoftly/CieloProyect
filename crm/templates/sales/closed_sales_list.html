@@ -1,0 +1,86 @@
+{% extends 'dashboard_admin.html' %}
+
+{% block title %}Ventas Cerradas{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <h1 class="mb-4">Ventas Cerradas</h1>
+            {% if is_admin %}
+    
+            {% endif %}
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Cliente</th>
+                        <th>Vendedor</th>
+                        <th>Precio de Venta</th>
+                        <th>Estado de Pago</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sale in sales %}
+                        <tr>
+                            <td>{{ sale.client }}</td>
+                            <td>{{ sale.vendor }}</td>
+                            <td>${{ sale.sales_price }}</td>
+                            <td>{{ sale.paid }}</td>
+                            <td>
+                                <a href="{% url 'closed_sales_detail' sale.pk %}" class="btn btn-info btn-sm">Ver</a>
+                                {% if is_admin %}
+                                    <a href="{% url 'closed_sales_update' sale.pk %}" class="btn btn-warning btn-sm">Editar</a>
+                                    <a href="{% url 'closed_sales_delete' sale.pk %}" class="btn btn-danger btn-sm">Eliminar</a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="5">No hay ventas cerradas disponibles.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            {% if sales.has_other_pages %}
+                <nav aria-label="Paginación">
+                    <ul class="pagination">
+                        {% if sales.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1" aria-label="Primera">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ sales.previous_page_number }}" aria-label="Anterior">
+                                    <span aria-hidden="true">&lsaquo;</span>
+                                </a>
+                            </li>
+                        {% endif %}
+
+                        {% for page_num in sales.paginator.page_range %}
+                            <li class="page-item {% if sales.number == page_num %}active{% endif %}">
+                                <a class="page-link" href="?page={{ page_num }}">{{ page_num }}</a>
+                            </li>
+                        {% endfor %}
+
+                        {% if sales.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ sales.next_page_number }}" aria-label="Siguiente">
+                                    <span aria-hidden="true">&rsaquo;</span>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ sales.paginator.num_pages }}" aria-label="Última">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

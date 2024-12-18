@@ -47,19 +47,26 @@ class Budget(models.Model):
     state = models.CharField(max_length=10, choices=STATE, default='pendiente')
 
     def calculate_cost_price(self):
-        return self.base_price + self.emisor_cost
+        base_price = self.base_price if self.base_price is not None else 0
+        emisor_cost = self.emisor_cost if self.emisor_cost is not None else 0
+        return base_price + emisor_cost
 
     def calculate_sale_fee(self):
-        return (self.sale_price - self.calculate_cost_price()) + self.special_services
+        sale_price = self.sale_price if self.sale_price is not None else 0
+        cost_price = self.calculate_cost_price()
+        special_services = self.special_services if self.special_services is not None else 0
+        return (sale_price - cost_price) + special_services
 
+    # Calcular la tarifa de cielo
     def calculate_cielo_fee(self):
         sale_fee = self.calculate_sale_fee()
-        return sale_fee - (sale_fee * 0.13)
+        return sale_fee - (sale_fee * 0.13) if sale_fee is not None else 0
 
+    # Calcular la tarifa del vendedor
     def calculate_vendor_fee(self):
         sale_fee = self.calculate_sale_fee()
         cielo_fee = self.calculate_cielo_fee()
-        return sale_fee - cielo_fee
+        return sale_fee - cielo_fee if sale_fee is not None and cielo_fee is not None else 0
 
     def save(self, *args, **kwargs):
         # Optional: add any pre-save logic if needed

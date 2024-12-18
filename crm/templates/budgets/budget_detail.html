@@ -1,0 +1,28 @@
+{% extends 'dashboard_admin.html' %}
+
+{% block title %}Detalles del Presupuesto{% endblock %}
+
+{% block content %}
+    <h1>Detalles del Presupuesto</h1>
+    
+    {% if budget %}
+        <div>
+            <p><strong>Fecha de Emisión:</strong> {{ budget.emission_date }}</p>
+            <p><strong>Cliente:</strong> {{ budget.client }}</p>
+            <p><strong>Vendedor:</strong> {{ budget.vendor }}</p>
+            <p><strong>Itinerario:</strong> {{ budget.itinerary }}</p>
+            <p><strong>Precio Base:</strong> {{ budget.base_price }}</p>
+            <p><strong>Precio de Venta:</strong> {{ budget.sale_price }}</p>
+            <p><strong>Estado:</strong> {{ budget.state }}</p>
+        </div>
+
+        <div>
+            <a href="{% url 'budget_list' %}">Volver a la Lista</a>
+            {% if user.groups.filter(name='asesor').exists or user.groups.filter(name='admi').exists %}
+                <a href="{% url 'budget_update' budget.pk %}">Editar</a>
+            {% endif %}
+        </div>
+    {% else %}
+        <p>Presupuesto no encontrado.</p>
+    {% endif %}
+{% endblock %}

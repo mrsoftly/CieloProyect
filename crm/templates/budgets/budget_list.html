@@ -1,0 +1,60 @@
+{% extends 'dashboard_admin.html' %}
+{% block title %}Lista de Presupuestos{% endblock %}
+
+{% block navigation %}
+    <a href="{% url 'budget_create' %}">Crear Nuevo Presupuesto</a>
+{% endblock %}
+
+{% block content %}
+    <h1>Presupuestos</h1>
+    
+    {% if budgets %}
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Cliente</th>
+                    <th>Vendedor</th>
+                    <th>Precio de Venta</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for budget in budgets %}
+                    <tr>
+                        <td>{{ budget.emission_date }}</td>
+                        <td>{{ budget.client }}</td>
+                        <td>{{ budget.vendor }}</td>
+                        <td>{{ budget.sale_price }}</td>
+                        <td>
+                            <a href="{% url 'budget_detail' budget.pk %}">Ver</a>
+                            <a href="{% url 'budget_update' budget.pk %}">Editar</a>
+                            {% if is_admin %}
+                                <a href="{% url 'budget_delete' budget.pk %}">Eliminar</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Paginación -->
+        {% if is_paginated %}
+            <div class="pagination">
+                <span class="page-links">
+                    {% if page_obj.has_previous %}
+                        <a href="?page={{ page_obj.previous_page_number }}">Anterior</a>
+                    {% endif %}
+                    <span class="page-current">
+                        Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+                    </span>
+                    {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}">Siguiente</a>
+                    {% endif %}
+                </span>
+            </div>
+        {% endif %}
+    {% else %}
+        <p>No hay presupuestos disponibles.</p>
+    {% endif %}
+{% endblock %}

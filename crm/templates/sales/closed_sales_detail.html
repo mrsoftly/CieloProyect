@@ -1,0 +1,28 @@
+{% extends 'dashboard_admin.html' %}
+
+{% block title %}Detalles de la Venta - {{ sale.client }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="mb-0">Detalles de la Venta</h2>
+                </div>
+                <div class="card-body">
+                    <h5>Cliente: {{ sale.client }}</h5>
+                    <p><strong>Vendedor:</strong> {{ sale.vendor }}</p>
+                    <p><strong>Precio de Venta:</strong> ${{ sale.sales_price }}</p>
+                    <p><strong>Tarifa de Venta:</strong> ${{ sale.fee_sale }}</p>
+                    <p><strong>Tarifa Cielo:</strong> ${{ sale.fee_cielo }}</p>
+                    <p><strong>Tarifa del Vendedor:</strong> ${{ sale.fee_vendor }}</p>
+                    <p><strong>Estado del Pago:</strong> {{ sale.paid }}</p>
+                    <p><strong>Fecha de Venta:</strong> {{ sale.date_sale }}</p>
+                    <a href="{% url 'closed_sales_list' %}" class="btn btn-secondary">Volver</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
