@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {% if form.instance.pk %}
+        Editar Cliente - {{ form.instance.first_name }} {{ form.instance.paternal_last_name }}
+    {% else %}
+        Nuevo Cliente
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="mb-0">
+                        {% if form.instance.pk %}
+                            Editar Información del Cliente
+                        {% else %}
+                            Registrar Nuevo Cliente
+                        {% endif %}
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.first_name.id_for_label }}" class="form-label">Nombre</label>
+                                <input type="{{ form.first_name.widget.input_type }}" 
+                                       class="form-control {% if form.first_name.errors %}is-invalid{% endif %}" 
+                                       id="{{ form.first_name.id_for_label }}" 
+                                       name="{{ form.first_name.name }}"
+                                       value="{{ form.first_name.value|default_if_none:'' }}">
+                                {% if form.first_name.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.first_name.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.paternal_last_name.id_for_label }}" class="form-label">Apellido Paterno</label>
+                                <input type="{{ form.paternal_last_name.widget.input_type }}" 
+                                       class="form-control {% if form.paternal_last_name.errors %}is-invalid{% endif %}" 
+                                       id="{{ form.paternal_last_name.id_for_label }}" 
+                                       name="{{ form.paternal_last_name.name }}"
+                                       value="{{ form.paternal_last_name.value|default_if_none:'' }}">
+                                {% if form.paternal_last_name.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.paternal_last_name.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.maternal_last_name.id_for_label }}" class="form-label">Apellido Materno</label>
+                                <input type="{{ form.maternal_last_name.widget.input_type }}" 
+                                       class="form-control {% if form.maternal_last_name.errors %}is-invalid{% endif %}" 
+                                       id="{{ form.maternal_last_name.id_for_label }}" 
+                                       name="{{ form.maternal_last_name.name }}"
+                                       value="{{ form.maternal_last_name.value|default_if_none:'' }}">
+                                {% if form.maternal_last_name.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.maternal_last_name.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.email.id_for_label }}" class="form-label">Correo Electrónico</label>
+                                <input type="{{ form.email.widget.input_type }}" 
+                                       class="form-control {% if form.email.errors %}is-invalid{% endif %}" 
+                                       id="{{ form.email.id_for_label }}" 
+                                       name="{{ form.email.name }}"
+                                       value="{{ form.email.value|default_if_none:'' }}">
+                                {% if form.email.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.email.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.phone_number.id_for_label }}" class="form-label">Número de Teléfono</label>
+                                <input type="{{ form.phone_number.widget.input_type }}" 
+                                       class="form-control {% if form.phone_number.errors %}is-invalid{% endif %}" 
+                                       id="{{ form.phone_number.id_for_label }}" 
+                                       name="{{ form.phone_number.name }}"
+                                       value="{{ form.phone_number.value|default_if_none:'' }}">
+                                {% if form.phone_number.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.phone_number.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'client_list' %}" class="btn btn-secondary">
+                                Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                {% if form.instance.pk %}
+                                    Actualizar Cliente
+                                {% else %}
+                                    Guardar Cliente
+                                {% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
