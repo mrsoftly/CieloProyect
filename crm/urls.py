@@ -25,5 +25,8 @@ urlpatterns = [
     path('sales/new/', views.ClosedSalesCreateView.as_view(), name='closed_sales_create'),
     path('sales/<int:pk>/edit/', views.ClosedSalesUpdateView.as_view(), name='closed_sales_update'),
     path('sales/<int:pk>/delete/', views.ClosedSalesDeleteView.as_view(), name='closed_sales_delete'),
-    
+    path('usuarios/',views.user_list,name ='lista_asesores'),
+    path('usuarios/<int:pk>/editar/', views.user_edit, name='user_edit'),
+    path('usuarios/<int:pk>/eliminar/', views.user_delete, name='user_delete'),
+    path('usuarios/nuevo/', views.user_create, name='user_create'),
 ]

@@ -1,13 +1,11 @@
 {% extends 'dashboard_admin.html' %}
 {% block title %}Lista de Presupuestos{% endblock %}
 
-{% block navigation %}
-    <a href="{% url 'budget_create' %}">Crear Nuevo Presupuesto</a>
-{% endblock %}
+
 
 {% block content %}
     <h1>Presupuestos</h1>
-    
+    <a class="btn btn-primary" href="{% url 'budget_create' %}" role="button"> Crear Nuevo Presupuesto</a>
     {% if budgets %}
         <table border="1">
             <thead>

@@ -5,15 +5,18 @@ from django.views.generic import (
     UpdateView, 
     DeleteView
 )
-from django.shortcuts import render
+from django.shortcuts import render,get_object_or_404
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.generic import TemplateView, ListView
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.contrib.auth import logout
+from django.contrib.auth.models import User,Group
 from crm.models import Client, Budget, closedSales
 from django.db.models import Sum
 from django.utils import timezone
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 import calendar
 
 class GroupRequiredMixin(UserPassesTestMixin):
@@ -36,19 +39,7 @@ class GroupRequiredMixin(UserPassesTestMixin):
         # Redirigir a una página de acceso denegado
         return redirect('acceso_denegado')
 
-from django.shortcuts import render
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import TemplateView
-from django.db.models import Sum
-from django.utils import timezone
-import calendar
-from crm.models import closedSales  # Asegúrate de que esta es la importación correcta
 
-from django.utils import timezone
-from django.db.models import Sum
-from django.shortcuts import render
-from .models import closedSales
-import calendar
 
 class DashboardAdminView(LoginRequiredMixin, GroupRequiredMixin, TemplateView):
     """Vista para dashboard de administradores"""
@@ -380,3 +371,82 @@ class ClosedSalesDeleteView(LoginRequiredMixin, GroupRequiredMixin, DeleteView):
 def logout_view(request):
     logout(request)
     return redirect('home')
+
+@login_required
+def user_list(request):
+    users = User.objects.all().order_by('-date_joined')
+    return render(request, 'Users/asesor.html', {'users': users})
+@login_required
+def user_edit(request, pk):
+    user = get_object_or_404(User, pk=pk)
+    groups = Group.objects.all()
+    
+    if request.method == 'POST':
+        user.username = request.POST['username']
+        user.email = request.POST['email']
+        user.is_active = 'is_active' in request.POST
+        
+        # Manejar la asignación de grupo
+        group_id = request.POST.get('group')
+        # Primero removemos todos los grupos actuales
+        user.groups.clear()
+        # Si se seleccionó un grupo, lo asignamos
+        if group_id:
+            group = Group.objects.get(id=group_id)
+            user.groups.add(group)
+            
+        user.save()
+        messages.success(request, 'Usuario actualizado correctamente')
+        return redirect('lista_asesores')
+        
+    return render(request, 'Users/edit_asesor.html', {
+        'user': user,
+        'groups': groups
+    })
+@login_required
+def user_delete(request, pk):
+    if request.method == 'POST':
+        user = get_object_or_404(User, pk=pk)
+        user.delete()
+        messages.success(request, 'Usuario eliminado correctamente')
+    return redirect('lista_asesores')
+@login_required
+def user_create(request):
+    groups = Group.objects.all()
+    
+    if request.method == 'POST':
+        username = request.POST['username']
+        email = request.POST['email']
+        password1 = request.POST['password1']
+        password2 = request.POST['password2']
+        
+        if password1 != password2:
+            messages.error(request, 'Las contraseñas no coinciden')
+            return render(request, 'Users/new_asesor.html', {'groups': groups})
+        
+        try:
+            # Crear el nuevo usuario
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                password=password1
+            )
+            
+            # Establecer estado activo
+            user.is_active = 'is_active' in request.POST
+            
+            # Asignar grupo si se seleccionó uno
+            group_id = request.POST.get('group')
+            if group_id:
+                group = Group.objects.get(id=group_id)
+                user.groups.add(group)
+            
+            user.save()
+            
+           
+            return redirect('lista_asesores')
+            
+        except Exception as e:
+            messages.error(request, f'Error al crear usuario: {str(e)}')
+    
+    return render(request, 'Users/new_asesor.html', {'groups': groups})

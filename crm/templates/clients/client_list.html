@@ -2,13 +2,13 @@
 
 {% block title %}Lista de Clientes{% endblock %}
 
-{% block navigation %}
-    <a href="{% url 'client_create' %}">Crear Nuevo Cliente</a>
-{% endblock %}
+
 
 {% block content %}
-    <h1>Lista de Clientes</h1>
 
+
+    <h1>Lista de Clientes</h1>
+    <a class="btn btn-primary" href="{% url 'client_create' %}" role="button"> Crear Nuevo Cliente</a>
     {% if clients %}
         <table border="1">
             <thead>
