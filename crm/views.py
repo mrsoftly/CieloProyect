@@ -21,6 +21,10 @@ from django.contrib.auth.decorators import login_required
 import calendar
 from dateutil.relativedelta import relativedelta
 from datetime import datetime, timedelta
+from django.core.serializers.json import DjangoJSONEncoder
+import json
+
+
 class GroupRequiredMixin(UserPassesTestMixin):
     
     """Mixin para validar pertenencia a grupos"""
@@ -42,13 +46,6 @@ class GroupRequiredMixin(UserPassesTestMixin):
         return redirect('acceso_denegado')
 
 
-from django.db.models import Sum
-from django.db.models.functions import TruncWeek, TruncMonth
-from datetime import datetime, timedelta
-from django.utils import timezone
-from dateutil.relativedelta import relativedelta
-import calendar
-
 class DashboardAdminView(LoginRequiredMixin, GroupRequiredMixin, TemplateView):
     """Vista para dashboard de administradores"""
     template_name = 'info_admin.html'
@@ -69,7 +66,7 @@ class DashboardAdminView(LoginRequiredMixin, GroupRequiredMixin, TemplateView):
         selected_day = int(selected_day) if selected_day else None
 
         # Rango de días (1-31)
-        days_range = list(range(1, 32))  # Crear un rango de días
+        days_range = list(range(1, 32))
 
         # Define start and end dates considering timezone awareness
         start_date = timezone.make_aware(datetime(selected_year, 1, 1))
@@ -93,24 +90,18 @@ class DashboardAdminView(LoginRequiredMixin, GroupRequiredMixin, TemplateView):
             total=Sum('fee_vendor')
         ).order_by('week')
 
-        # Creando un diccionario con las ganancias por semana
         weekly_sales_dict = {sale['week']: sale['total'] for sale in weekly_sales}
         
         semanas = []
         ganancias_semanales_data = []
 
-        # Ajustamos las semanas y las ganancias de cada una
         for i in range(4):
-            # Obtención de la fecha de la semana actual y las semanas anteriores
             week_date = today - timedelta(weeks=i)
-            # Truncamos la fecha para obtener la semana completa
-            week_start = week_date - timedelta(days=week_date.weekday())  # Día de inicio de la semana (lunes)
+            week_start = week_date - timedelta(days=week_date.weekday())
             
             semanas.insert(0, f"Semana {4 - i}")
-            
-            # Comprobamos si la semana ya tiene ventas y sumamos las ganancias
             ganancias = weekly_sales_dict.get(week_start.date(), 0)
-            ganancias_semanales_data.insert(0, ganancias)
+            ganancias_semanales_data.insert(0, float(ganancias) if ganancias else 0)
 
         # Ganancias mensuales
         monthly_sales = filtered_sales.annotate(
@@ -125,7 +116,8 @@ class DashboardAdminView(LoginRequiredMixin, GroupRequiredMixin, TemplateView):
 
         for i in range(12):
             month_date = today.replace(day=1) - relativedelta(months=i)
-            ganancias_mensuales_data.insert(0, monthly_sales_dict.get(TruncMonth(month_date), 5000 + (i * 1000)))
+            ganancia = monthly_sales_dict.get(TruncMonth(month_date), 5000 + (i * 1000))
+            ganancias_mensuales_data.insert(0, float(ganancia) if ganancia else 0)
 
         # Top vendedores
         top_vendors = filtered_sales.values('vendor')\
@@ -142,16 +134,22 @@ class DashboardAdminView(LoginRequiredMixin, GroupRequiredMixin, TemplateView):
         # Años disponibles para filtro
         available_years = closedSales.objects.dates('date_sale', 'year')
         available_years = [date.year for date in available_years]
+        
+        # Serializar datos para los gráficos
+        semanas_json = json.dumps(semanas, cls=DjangoJSONEncoder)
+        ganancias_semanales_json = json.dumps(ganancias_semanales_data, cls=DjangoJSONEncoder)
+        meses_json = json.dumps(meses, cls=DjangoJSONEncoder)
+        ganancias_mensuales_json = json.dumps(ganancias_mensuales_data, cls=DjangoJSONEncoder)
 
         # Añadir todos los datos al contexto
         context.update({
             'weekly_revenue': sum(sale['total'] for sale in weekly_sales if sale['total']),
             'monthly_revenue': filtered_sales.aggregate(Sum('fee_vendor'))['fee_vendor__sum'] or 0,
             'top_vendors': top_vendors,
-            'ganancias_semanales': ganancias_semanales_data,
-            'ganancias_mensuales': ganancias_mensuales_data,
-            'semanas': semanas,
-            'meses': meses,
+            'ganancias_semanales': ganancias_semanales_json,
+            'ganancias_mensuales': ganancias_mensuales_json,
+            'semanas': semanas_json,
+            'meses': meses_json,
             'stats': {
                 'total_clients': filtered_sales.values('client').distinct().count() or 10,
                 'total_sales': filtered_sales.count() or 25,
@@ -162,7 +160,7 @@ class DashboardAdminView(LoginRequiredMixin, GroupRequiredMixin, TemplateView):
             'selected_year': selected_year,
             'selected_month': selected_month,
             'selected_day': selected_day,
-            'days_range': days_range  # Añadir el rango de días al contexto
+            'days_range': days_range
         })
 
         return context
@@ -300,11 +298,42 @@ class BudgetCreateView(LoginRequiredMixin, GroupRequiredMixin, CreateView):
 
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
+        # Pre-configuración para el campo 'vendor'
         if self.request.user.groups.filter(name='asesor').exists():
             form.fields['vendor'].initial = self.request.user.username
             form.fields['vendor'].disabled = True
+
+        # Configuración del campo 'client' para que sea un campo de texto con autocompletado
+        form.fields['client'].widget.attrs.update({
+            'class': 'form-control',
+            'id': 'client-autocomplete',
+            'placeholder': 'Buscar cliente por nombre, teléfono o correo'
+        })
+
         return form
 
+    def form_valid(self, form):
+   
+        client_input = form.cleaned_data['client']
+
+        # Buscar el cliente por nombre, correo o teléfono
+        from django.core.exceptions import ValidationError
+
+        try:
+            client = Client.objects.filter(
+                models.Q(name__icontains=client_input) | 
+                models.Q(email__icontains=client_input) | 
+                models.Q(phone__icontains=client_input)
+            ).first()
+
+            if client:
+                form.instance.client = client
+            else:
+                raise ValidationError("El cliente ingresado no existe. Por favor seleccione uno válido.")
+        except ValidationError as e:
+            form.add_error('client', e)
+
+        return super().form_valid(form)
 
 class BudgetUpdateView(LoginRequiredMixin, GroupRequiredMixin, UpdateView):
     model = Budget

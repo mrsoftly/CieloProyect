@@ -133,7 +133,12 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
-    // Configuración común para los gráficos
+    // Get data from Django context
+    const semanasData = JSON.parse('{{ semanas|escapejs }}');
+    const gananciasSemanalesData = JSON.parse('{{ ganancias_semanales|escapejs }}');
+    const mesesData = JSON.parse('{{ meses|escapejs }}');
+    const gananciasMensualesData = JSON.parse('{{ ganancias_mensuales|escapejs }}');
+
     const chartConfig = {
         responsive: true,
         plugins: {
@@ -153,14 +158,13 @@
         }
     };
 
-    // Gráfico de Ganancias Semanales
     new Chart(document.getElementById('gananciasSemanalesChart'), {
         type: 'line',
         data: {
-            labels: {{ semanas|safe }},
+            labels: semanasData,
             datasets: [{
                 label: 'Ganancias Semanales',
-                data: {{ ganancias_semanales|safe }},
+                data: gananciasSemanalesData,
                 borderColor: '#2563eb',
                 backgroundColor: 'rgba(37, 99, 235, 0.1)',
                 tension: 0.4,
@@ -170,14 +174,13 @@
         options: chartConfig
     });
     
-    // Gráfico de Ganancias Mensuales
     new Chart(document.getElementById('gananciasMensualesChart'), {
         type: 'line',
         data: {
-            labels: {{ meses|safe }},
+            labels: mesesData,
             datasets: [{
                 label: 'Ganancias Mensuales',
-                data: {{ ganancias_mensuales|safe }},
+                data: gananciasMensualesData,
                 borderColor: '#059669',
                 backgroundColor: 'rgba(5, 150, 105, 0.1)',
                 tension: 0.4,
