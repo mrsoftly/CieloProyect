@@ -27,7 +27,19 @@
           </div>
       
           <!-- Enlaces con iconos -->
-          <li><a href="{%url 'dashboard_admin'%}"><i class="fas fa-home"></i> Inicio</a></li>
+          <li>
+            {% if user.is_authenticated %}
+              {% if is_asesor %}
+                  <a href="{% url 'dashboard_asesor' %}">
+                      <i class="fas fa-home"></i> Inicio
+                  </a>
+              {%endif%}
+              {% if is_admin %}
+                  <a href="{% url 'dashboard_admin' %}">
+                      <i class="fas fa-home"></i> Inicio
+                  </a>
+              {% endif %}
+            {% endif %}         
           <li><a href="{%url 'closed_sales_list'%}"><i class="fa-solid fa-money-bills"></i> Ventas del mes</a></li>
           <li><a href="{%url 'budget_list'%}"><i class="fa-solid fa-file-pen"></i> Presupuesto </a></li>
           <li><a href="{%url 'lista_asesores'%}"><i class="fa-regular fa-face-smile"></i>Asesores</a></li>

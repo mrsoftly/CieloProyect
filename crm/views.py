@@ -166,16 +166,113 @@ class DashboardAdminView(LoginRequiredMixin, GroupRequiredMixin, TemplateView):
         return context
 
 class DashboardAsesorView(LoginRequiredMixin, GroupRequiredMixin, TemplateView):
-    """Vista para dashboard de asesores"""
-    template_name = 'info_asesor.html'
-    allowed_groups = ['asesor']  # Solo accesible para el grupo Asesor
-
-def get_context_data(self, **kwargs):
+  """Vista para dashboard de usuarios"""
+  template_name = 'info_asesor.html' # Cambia a la plantilla correspondiente
+  allowed_groups = ['asesor']  # Cambia al grupo correspondiente si es necesario
+  def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Calcula si el usuario pertenece a un grupo específico
-        user = self.request.user
-        context['is_asesor'] = user.groups.filter(name='asesor').exists()
-        context['is_admin'] = user.groups.filter(name='admi').exists()
+        user = self.request.user  # Usuario conectado
+        today = timezone.now()
+
+        # Filtros desde la solicitud GET
+        selected_year = self.request.GET.get('year', today.year)
+        selected_month = self.request.GET.get('month', None)
+        selected_day = self.request.GET.get('day', None)
+
+        # Convertir valores a enteros si están presentes
+        selected_year = int(selected_year)
+        selected_month = int(selected_month) if selected_month else None
+        selected_day = int(selected_day) if selected_day else None
+
+        # Rango de días (1-31)
+        days_range = list(range(1, 32))
+
+        # Define start and end dates considering timezone awareness
+        start_date = timezone.make_aware(datetime(selected_year, 1, 1))
+        end_date = start_date + relativedelta(years=1) - timedelta(seconds=1)
+
+        if selected_month:
+            start_date = start_date.replace(month=selected_month)
+            end_date = start_date + relativedelta(months=1) - timedelta(seconds=1)
+
+        if selected_day:
+            start_date = start_date.replace(day=selected_day)
+            end_date = start_date + timedelta(days=1) - timedelta(seconds=1)
+
+        # Filtrar las ventas del usuario actual
+        filtered_sales = closedSales.objects.filter(
+            date_sale__gte=start_date,
+            date_sale__lte=end_date,
+            vendor=user  # Filtrar por el usuario conectado
+        )
+
+        # Ganancias semanales
+        weekly_sales = filtered_sales.annotate(
+            week=TruncWeek('date_sale')
+        ).values('week').annotate(
+            total=Sum('fee_vendor')
+        ).order_by('week')
+
+        weekly_sales_dict = {sale['week']: sale['total'] for sale in weekly_sales}
+
+        semanas = []
+        ganancias_semanales_data = []
+
+        for i in range(4):
+            week_date = today - timedelta(weeks=i)
+            week_start = week_date - timedelta(days=week_date.weekday())
+            
+            semanas.insert(0, f"Semana {4 - i}")
+            ganancias = weekly_sales_dict.get(week_start.date(), 0)
+            ganancias_semanales_data.insert(0, float(ganancias) if ganancias else 0)
+
+        # Ganancias mensuales
+        monthly_sales = filtered_sales.annotate(
+            month=TruncMonth('date_sale')
+        ).values('month').annotate(
+            total=Sum('fee_vendor')
+        ).order_by('month')
+
+        monthly_sales_dict = {sale['month']: sale['total'] for sale in monthly_sales}
+        meses = list(calendar.month_name[1:])
+        ganancias_mensuales_data = []
+
+        for i in range(12):
+            month_date = today.replace(day=1) - relativedelta(months=i)
+            ganancia = monthly_sales_dict.get(TruncMonth(month_date), 0)
+            ganancias_mensuales_data.insert(0, float(ganancia) if ganancia else 0)
+
+        # Años disponibles para filtro
+        available_years = closedSales.objects.filter(vendor=user).dates('date_sale', 'year')
+        available_years = [date.year for date in available_years]
+
+        # Serializar datos para los gráficos
+        semanas_json = json.dumps(semanas, cls=DjangoJSONEncoder)
+        ganancias_semanales_json = json.dumps(ganancias_semanales_data, cls=DjangoJSONEncoder)
+        meses_json = json.dumps(meses, cls=DjangoJSONEncoder)
+        ganancias_mensuales_json = json.dumps(ganancias_mensuales_data, cls=DjangoJSONEncoder)
+
+        # Añadir todos los datos al contexto
+        context.update({
+            'weekly_revenue': sum(sale['total'] for sale in weekly_sales if sale['total']),
+            'monthly_revenue': filtered_sales.aggregate(Sum('fee_vendor'))['fee_vendor__sum'] or 0,
+            'ganancias_semanales': ganancias_semanales_json,
+            'ganancias_mensuales': ganancias_mensuales_json,
+            'semanas': semanas_json,
+            'meses': meses_json,
+            'stats': {
+                'total_clients': filtered_sales.values('client').distinct().count() or 0,
+                'total_sales': filtered_sales.count() or 0,
+                'average_sale': filtered_sales.aggregate(avg=Avg('fee_vendor'))['avg'] or 0
+            },
+            'available_years': available_years,
+            'months': list(enumerate(calendar.month_name[1:], start=1)),
+            'selected_year': selected_year,
+            'selected_month': selected_month,
+            'selected_day': selected_day,
+            'days_range': days_range
+        })
+
         return context
 
 # Vista para manejar acceso denegado
