@@ -1,0 +1,151 @@
+{% extends "dashboard_admin.html" %}
+{% block title %}CRM AGENCIA CIELO{% endblock %}
+{% block content %}
+<nav class="navbar">
+    <div class="container d-flex justify-content-between align-items-center">
+        <!-- Logo o nombre de la empresa (izquierda) -->
+        <a class="navbar-brand" href="#">CRM AGENCIA CIELO</a>
+        
+        <!-- Mensaje de bienvenida (derecha) -->
+        {% if user.is_authenticated %}
+        <div class="welcome-message">
+            Bienvenido, {{ user.username }}
+        </div>
+        {% endif %}
+    </div>
+</nav>
+<div class="row g-4">
+    <!-- Card: Presupuestos Recibidos -->
+    <div class="col-lg-3 col-md-6">
+        <div class="card card-primary">
+            <div class="card-body">
+                <h6 class="card-title">Presupuestos Recibidos</h6>
+                <h2 class="card-number">{{ presupuestos_recibidos }}</h2>
+                <p class="card-info">Total: <span class="right">{{ presupuestos_recibidos }}</span></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card: Presupuestos Aceptados -->
+    <div class="col-lg-3 col-md-6">
+        <div class="card card-success">
+            <div class="card-body">
+                <h6 class="card-title">Presupuestos Aceptados</h6>
+                <h2 class="card-number">{{ presupuestos_aceptados }}</h2>
+                <p class="card-info">Total: <span class="right">{{ presupuestos_aceptados }}</span></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card: Presupuestos a Revisión -->
+    <div class="col-lg-3 col-md-6">
+        <div class="card card-primary-light">
+            <div class="card-body">
+                <h6 class="card-title">Presupuestos a Revisión</h6>
+                <h2 class="card-number">{{ presupuestos_revision }}</h2>
+                <p class="card-info">Total: <span class="right">{{ presupuestos_revision }}</span></p>
+            </div>
+        </div>
+    </div>
+</div>
+<style>
+    :root {
+        --primary-color: #2563eb;
+        --primary-light: #60a5fa;
+        --success-color: #059669;
+        --success-light: #34d399;
+        --text-light: #ffffff;
+        --shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+    }
+    
+    body {
+        background: #f8fafc;
+        font-family: system-ui, -apple-system, sans-serif;
+    }
+    
+   
+    
+    .card {
+        border: none;
+        border-radius: 0.5rem;
+        box-shadow: var(--shadow);
+        transition: transform 0.2s ease-in-out;
+    }
+    
+    .card:hover {
+        transform: translateY(-2px);
+    }
+    
+    .card-primary {
+        background: var(--primary-color);
+    }
+    
+    .card-success {
+        background: var(--success-color);
+    }
+    
+    .card-primary-light {
+        background: var(--primary-light);
+    }
+    
+    .card-success-light {
+        background: var(--success-light);
+    }
+    
+    .card-title {
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+    
+    .card-primary .card-title,
+    .card-success .card-title,
+    .card-primary-light .card-title,
+    .card-success-light .card-title,
+    .card-primary .card-number,
+    .card-success .card-number,
+    .card-primary-light .card-number,
+    .card-success-light .card-number,
+    .card-primary .card-info,
+    .card-success .card-info,
+    .card-primary-light .card-info,
+    .card-success-light .card-info {
+        color: var(--text-light);
+    }
+    
+    .card-number {
+        font-size: 2rem;
+        font-weight: 700;
+        margin: 0.5rem 0;
+    }
+    
+    .list-group-item {
+        border: none;
+        background: transparent;
+        padding: 1rem;
+        margin-bottom: 0.5rem;
+        border-radius: 0.375rem;
+        background-color: #f8fafc;
+        transition: background-color 0.2s ease;
+    }
+    
+    .list-group-item:hover {
+        background-color: #e2e8f0; /* Slight hover effect */
+    }
+    
+    .vendor-name {
+        font-weight: 600;
+        font-size: 1.1rem;
+        color: var(--primary-color);
+    }
+    
+    .badge {
+        font-size: 0.875rem;
+        padding: 0.6rem 1rem;
+        background-color: var(--success-color);
+        color: var(--text-light);
+        font-weight: 600;
+        border-radius: 2rem;
+    }
+    </style>
+{% endblock %}
