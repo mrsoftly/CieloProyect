@@ -1,5 +1,7 @@
 from django.db import models
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, MaxValueValidator  # Import MaxValueValidator
+from django.contrib.auth.models import User  # Import User
+from decimal import Decimal 
 
 class Client(models.Model):
     first_name = models.CharField(max_length=60, verbose_name="Nombre", help_text="Nombre del cliente")
@@ -21,9 +23,7 @@ class Client(models.Model):
 
     def __str__(self):
         return f"{self.first_name} {self.paternal_last_name} {self.maternal_last_name}"
-    
-from django.db import models
-from django.core.validators import MinValueValidator
+
 
 class Budget(models.Model):
     STATE = [
@@ -34,17 +34,22 @@ class Budget(models.Model):
 
     emission_date = models.DateField()
     client = models.ForeignKey('Client', on_delete=models.CASCADE)
-    itinerary = models.CharField(max_length=50)
-    cod_airline = models.CharField(max_length=50)
-    reserv_system = models.CharField(max_length=50)
-    beeper = models.CharField(max_length=50)
-    base_price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
-    emisor_cost = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
-    sale_price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
-    special_services = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
-    vendor = models.CharField(max_length=50)
-    provider = models.CharField(max_length=50)
+    itinerary = models.CharField(max_length=200)  
+    cod_airline = models.CharField(max_length=200)  
+    reserv_system = models.CharField(max_length=200)  
+    beeper = models.CharField(max_length=200)  
+    base_price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0), MaxValueValidator(99999999.99)])
+    emisor_cost = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0), MaxValueValidator(99999999.99)])
+    sale_price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0), MaxValueValidator(99999999.99)])
+    special_services = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0), MaxValueValidator(99999999.99)])
+    vendor = models.ForeignKey(User, on_delete=models.CASCADE)
+    provider = models.CharField(max_length=200)
     state = models.CharField(max_length=10, choices=STATE, default='pendiente')
+
+    cost_price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    sale_fee = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    cielo_fee = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    vendor_fee = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     def calculate_cost_price(self):
         base_price = self.base_price if self.base_price is not None else 0
@@ -57,19 +62,21 @@ class Budget(models.Model):
         special_services = self.special_services if self.special_services is not None else 0
         return (sale_price - cost_price) + special_services
 
-    # Calcular la tarifa de cielo
     def calculate_cielo_fee(self):
         sale_fee = self.calculate_sale_fee()
-        return sale_fee - (sale_fee * 0.13) if sale_fee is not None else 0
+        # Asegúrate de usar Decimal para las operaciones
+        return sale_fee - (Decimal(sale_fee) * Decimal('0.13')) if sale_fee is not None else 0
 
-    # Calcular la tarifa del vendedor
     def calculate_vendor_fee(self):
         sale_fee = self.calculate_sale_fee()
         cielo_fee = self.calculate_cielo_fee()
         return sale_fee - cielo_fee if sale_fee is not None and cielo_fee is not None else 0
 
     def save(self, *args, **kwargs):
-        # Optional: add any pre-save logic if needed
+        self.cost_price = self.calculate_cost_price()
+        self.sale_fee = self.calculate_sale_fee()
+        self.cielo_fee = self.calculate_cielo_fee()
+        self.vendor_fee = self.calculate_vendor_fee()
         super().save(*args, **kwargs)
 
 class closedSales(models.Model):

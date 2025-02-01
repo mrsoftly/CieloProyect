@@ -1,0 +1,60 @@
+{% extends 'base2.html' %}
+
+{% block title %}Detalles del Cliente{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h2 class="text-center mb-4">Detalles del Cliente</h2>
+    
+    <div class="row justify-content-center">
+        
+        <div class="col-md-6">
+            <div class="card shadow-lg border-0 rounded-lg p-3">
+                <div class="card-body text-center">  <!-- Centra el contenido -->
+                    <h4 class="card-title text-primary fw-bold">{{ client.first_name }} {{ client.paternal_last_name }} {{ client.maternal_last_name }}</h4>
+                    <hr>
+                    <p><strong>Email:</strong> {{ client.email }}</p>
+                    <p><strong>Teléfono:</strong> {{ client.phone_number }}</p>
+                </div>
+            </div>
+        </div>
+       
+    </div>
+
+    <div class="text-center mt-4">
+        <a href="{% url 'client_list' %}" class="btn btn-secondary">Volver a la Lista</a>
+    </div>
+</div>
+
+
+<style>
+    .card {
+    background: #ffffff;
+    border-radius: 12px;
+    transition: transform 0.2s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.card-body p {
+    font-size: 1rem;
+    color: #333;
+}
+
+.btn-secondary {
+    background-color: #2563eb;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 1rem;
+}
+
+.btn-secondary:hover {
+    background-color: #1e40af;
+}
+
+</style>
+{% endblock %}

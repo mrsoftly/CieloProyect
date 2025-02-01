@@ -1,0 +1,61 @@
+{% extends 'base2.html' %}
+
+{% block title %}Lista de Clientes{% endblock %}
+
+
+
+{% block content %}
+
+
+    <h1>Lista de Clientes</h1>
+    <a class="btn btn-primary" href="{% url 'client_create' %}" role="button"> Crear Nuevo Cliente</a>
+    {% if clients %}
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Apellido Paterno</th>
+                    <th>Apellido Materno</th>
+                    <th>Email</th>
+                    <th>Teléfono</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for client in clients %}
+                    <tr>
+                        <td>{{ client.first_name }}</td>
+                        <td>{{ client.paternal_last_name }}</td>
+                        <td>{{ client.maternal_last_name }}</td>
+                        <td>{{ client.email }}</td>
+                        <td>{{ client.phone_number }}</td>
+                        <td>
+                            <a href="{% url 'client_detail' client.pk %}">Ver</a>
+                            <a href="{% url 'client_update' client.pk %}">Editar</a>
+                            {% if is_admin %}
+                                <a href="{% url 'client_delete' client.pk %}">Eliminar</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Paginación -->
+        {% if is_paginated %}
+            <div class="pagination">
+                <span class="page-links">
+                    {% if page_obj.has_previous %}
+                        <a href="?page={{ page_obj.previous_page_number }}">Anterior</a>
+                    {% endif %}
+                    <span class="page-current">
+                        Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+                    </span>
+                    {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}">Siguiente</a>
+                    {% endif %}
+                </span>
+            </div>
+            {% endif %}
+    {% endif %}
+{% endblock %}

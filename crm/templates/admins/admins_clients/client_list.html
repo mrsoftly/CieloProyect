@@ -1,4 +1,4 @@
-{% extends 'dashboard_admin.html' %}
+{% extends 'base2.html' %}
 
 {% block title %}Lista de Clientes{% endblock %}
 
@@ -8,10 +8,10 @@
 
 
     <h1>Lista de Clientes</h1>
-    <a class="btn btn-primary" href="{% url 'client_create' %}" role="button"> Crear Nuevo Cliente</a>
+
     {% if clients %}
-        <table border="1">
-            <thead>
+        <table class="table table-hover table-bordered shadow-sm mt-4">
+            <thead class="table-primary">
                 <tr>
                     <th>Nombre</th>
                     <th>Apellido Paterno</th>
@@ -30,11 +30,10 @@
                         <td>{{ client.email }}</td>
                         <td>{{ client.phone_number }}</td>
                         <td>
-                            <a href="{% url 'client_detail' client.pk %}">Ver</a>
-                            <a href="{% url 'client_update' client.pk %}">Editar</a>
-                            {% if is_admin %}
-                                <a href="{% url 'client_delete' client.pk %}">Eliminar</a>
-                            {% endif %}
+                            <a class="btn btn-primary" href="{% url 'client_detail' client.pk %}" role="button"> Ver</a>
+                            <a class="btn btn-info" href="{% url 'client_update' client.pk %}" role="button"> Modificar</a>
+                            <a class="btn btn-danger" href="{% url 'client_delete' client.pk %}" role="button"> Eliminar</a>
+                          
                         </td>
                     </tr>
                 {% endfor %}
@@ -58,4 +57,40 @@
             </div>
             {% endif %}
     {% endif %}
+
+    <style>
+        .table {
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    
+        .table thead {
+        background: #114fac;
+        color: rgb(0, 0, 0);
+        font-weight: bold;
+    
+    }
+    
+        .table tbody tr:hover {
+        background: #6c86a0;
+        transition: 0.3s ease-in-out;
+        color: rgb(0, 0, 0);
+        font-weight: bold;
+    }
+    
+        .table td,
+        .table th {
+        padding: 12px;
+        text-align: center;
+        vertical-align: middle;
+    }
+    
+        .btn {
+        border-radius: 5px;
+        padding: 6px 12px;
+    }
+
+    </style>
+    
+    
 {% endblock %}

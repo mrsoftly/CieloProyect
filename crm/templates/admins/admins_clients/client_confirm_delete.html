@@ -1,0 +1,29 @@
+{% extends 'base2.html' %}
+
+{% block title %}Eliminar Cliente{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-lg border-0 rounded-lg p-4">
+                <div class="card-header bg-danger text-white text-center">
+                    <h3 class="mb-0">Eliminar Cliente</h3>
+                </div>
+                <div class="card-body text-center">
+                    <p class="mb-4">¿Estás seguro de que deseas eliminar a <strong>{{ client.first_name }} {{ client.paternal_last_name }}</strong>? Esta acción no se puede deshacer.</p>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="d-flex justify-content-center">
+                            <button type="submit" class="btn btn-danger mx-2">Confirmar</button>
+                            <a href="{% url 'client_list' %}" class="btn btn-secondary mx-2">Cancelar</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

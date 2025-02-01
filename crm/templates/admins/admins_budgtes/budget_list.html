@@ -1,0 +1,84 @@
+{% extends 'base2.html' %}
+{% block title %}Lista de Presupuestos{% endblock %}
+
+{% block content %}
+    <h1>Presupuestos</h1>
+    <a class="btn btn-primary" href="{% url 'budget_create' %}" role="button"> Crear Nuevo Presupuesto</a>
+    {% if budgets %}
+    <table class="table table-hover table-bordered shadow-sm mt-4">
+        <thead class="table-primary">
+            <tr>
+                <th>Fecha</th>
+                <th>Cliente</th>
+                <th>Vendedor</th>
+                <th>Precio de Venta</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for budget in budgets %}
+            <tr>
+                <td>{{ budget.emission_date }}</td>
+                <td>{{ budget.client }}</td>
+                <td>{{ budget.vendor }}</td>
+                <td>{{ budget.sale_price }}</td>
+                <td>
+                    <a class="btn btn-primary" href="{% url 'budget_details' budget.id %}" role="button" aria-label="Ver presupuesto">Ver</a>
+                    <a class="btn btn-info" href="" role="button" aria-label="Modificar presupuesto">Modificar</a>
+                    <a class="btn btn-danger" href="" role="button" aria-label="Eliminar presupuesto">Eliminar</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Paginación -->
+    {% if is_paginated %}
+    <div class="pagination mt-4">
+        <span class="page-links">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-outline-secondary" aria-label="Página anterior">Anterior</a>
+            {% endif %}
+            <span class="page-current">
+                Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+            </span>
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}" class="btn btn-outline-secondary" aria-label="Página siguiente">Siguiente</a>
+            {% endif %}
+        </span>
+    </div>
+    {% endif %}
+    {% endif %}
+
+    <style>
+        .table {
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .table thead {
+            background: #114fac;
+            color: rgb(255, 255, 255);
+            font-weight: bold;
+        }
+
+        .table tbody tr:hover {
+            background: #6c86a0;
+            transition: 0.3s ease-in-out;
+            color: rgb(0, 0, 0);
+            font-weight: bold;
+        }
+
+        .table td,
+        .table th {
+            padding: 12px;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .btn {
+            border-radius: 5px;
+            padding: 6px 12px;
+        }
+    </style>
+{% endblock %}

@@ -1,4 +1,4 @@
-{% extends 'dashboard_admin.html' %}
+{% extends 'base2.html' %}
 
 {% block title %}
     {% if form.instance.pk %}
@@ -86,18 +86,22 @@
                 Object.entries(inputs).map(([key, input]) => [key, parseFloat(input.value) || 0])
             );
 
+            // Realiza los cálculos
             const costPrice = values.basePrice + values.emisorCost;
             const saleFee = values.salePrice - costPrice + values.specialServices;
-            const cieloFee = saleFee * 0.87;
+            const cieloFee = saleFee * 0.87; // Calcula Fee de Cielo
 
+            // Actualiza los campos calculados
             calculatedFields.costPrice.value = costPrice.toFixed(2);
             calculatedFields.saleFee.value = saleFee.toFixed(2);
             calculatedFields.cieloFee.value = cieloFee.toFixed(2);
         }
 
-        Object.values(inputs).forEach(input => input.addEventListener('input', updateCalculatedFields));
+        // Agrega un listener para cada input que calcule los valores al cambiar
+        Object.values(inputs--).forEach(input => input.addEventListener('input', updateCalculatedFields));
+
+        // Calcula los valores por defecto cuando se carga la página
         updateCalculatedFields();
     });
 </script>
 {% endblock %}
-
