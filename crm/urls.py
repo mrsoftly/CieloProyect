@@ -15,7 +15,15 @@ urlpatterns = [
     path('admins_clients/<int:pk>/delete/', views.AdminsClientDelete.as_view(), name='client_delete'),
     ###------- end admins clients urls --------####
 
+    ## --------- admins budgets urls --------- ###
     path('admins_budgets/',views.AdminBudgetList.as_view(),name = 'budget_list'),
     path('admins_budgets/details/<int:pk>',views.AdminBudgetDetail.as_view(), name = 'budget_details'),
     path('admins_budgets/create/',views.AdminBudgetCreateView.as_view(), name='budget_create'),
+    path('admins_budgets/edit/<int:pk>',views.AdminBudgetEdit.as_view(), name='budget_edit'),
+    path('admins_budgets/delete/<int:pk>',views.AdminBudgetDeleteView.as_view(),name='budget_delete'),
+    ## ----------- end admins budgets urls ------- ###
+
+    path('admins_closedSales/',views.AdminClosedSalesList.as_view(),name = 'closedSales_list'),
+
+
 ]

@@ -39,8 +39,21 @@ class GroupRequiredMixin(UserPassesTestMixin):
 ADMIN_GROUP = 'admi'
 ASESOR_GROUP = 'asesor'
 
-class DashboardAdminView(LoginRequiredMixin, GroupRequiredMixin, TemplateView):
-    """Vista para dashboard de administradores"""
+from django.utils import timezone
+from django.contrib import messages
+from django.db.models import Sum, Avg
+from django.db.models.functions import TruncWeek, TruncMonth
+from django.views.generic import TemplateView
+from django.contrib.auth.mixins import LoginRequiredMixin
+from datetime import datetime, timedelta
+from dateutil.relativedelta import relativedelta
+import json
+import calendar
+
+from .models import closedSales, Budget
+
+class DashboardAdminView(LoginRequiredMixin, TemplateView):
+    """Vista para el dashboard de administradores."""
     template_name = 'admins/info_admin.html'
     allowed_groups = 'admi'
 
@@ -48,46 +61,48 @@ class DashboardAdminView(LoginRequiredMixin, GroupRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         today = timezone.now()
 
-        # Filtros desde la solicitud GET
+        # Obtener filtros de la solicitud GET con valores por defecto
         selected_year = int(self.request.GET.get('year', today.year))
-        selected_month = int(self.request.GET.get('month', today.month)) if self.request.GET.get('month') else None
-        selected_day = int(self.request.GET.get('day')) if self.request.GET.get('day') else None
+        selected_month = int(self.request.GET.get('month', today.month))
+        selected_day = int(self.request.GET.get('day', today.day))
 
-        # Define start and end dates considering timezone awareness
-        start_date = timezone.make_aware(datetime(selected_year, 1, 1))
-        end_date = start_date + relativedelta(years=1) - timedelta(seconds=1)
+        # Manejo de fechas seguras
+        try:
+            start_date = timezone.make_aware(datetime(selected_year, selected_month, selected_day))
+            end_date = start_date + timedelta(days=1) - timedelta(seconds=1)
+        except ValueError:
+            messages.error(self.request, "Fecha inválida seleccionada. Usando fecha actual.")
+            start_date = timezone.make_aware(datetime(today.year, today.month, today.day))
+            end_date = start_date + timedelta(days=1) - timedelta(seconds=1)
+            selected_year, selected_month, selected_day = today.year, today.month, today.day
 
-        if selected_month:
-            start_date = start_date.replace(month=selected_month)
-            end_date = start_date + relativedelta(months=1) - timedelta(seconds=1)
-
-        if selected_day:
-            try:
-                start_date = start_date.replace(day=selected_day)
-                end_date = start_date + timedelta(days=1) - timedelta(seconds=1)
-            except ValueError:
-                messages.error(self.request, "Fecha inválida seleccionada.")
-
-        # Consultas para obtener los datos filtrados
+        # Obtener datos filtrados
         filtered_sales = closedSales.objects.filter(date_sale__gte=start_date, date_sale__lte=end_date)
+        filtered_budgets = Budget.objects.filter(emission_date__gte=start_date, emission_date__lte=end_date)
+
+        # Estadísticas de presupuestos
+        budget_stats = {
+            'total': filtered_budgets.count(),
+            'pending': filtered_budgets.filter(state='pendiente').count(),
+            'accepted': filtered_budgets.filter(state='aceptado').count(),
+            'rejected': filtered_budgets.filter(state='rechazado').count()
+        }
 
         # Ganancias semanales
-        weekly_sales = filtered_sales.annotate(
-            week=TruncWeek('date_sale')
-        ).values('week').annotate(
-            total=Sum('fee_vendor')
-        ).order_by('week')
+        weekly_sales = filtered_sales.annotate(week=TruncWeek('date_sale')) \
+            .values('week') \
+            .annotate(total=Sum('fee_vendor')) \
+            .order_by('week')
 
         weekly_sales_dict = {sale['week']: sale['total'] for sale in weekly_sales}
         semanas = [f"Semana {4 - i}" for i in range(4)]
         ganancias_semanales_data = [weekly_sales_dict.get(today - timedelta(weeks=i), 0) for i in range(4)]
 
         # Ganancias mensuales
-        monthly_sales = filtered_sales.annotate(
-            month=TruncMonth('date_sale')
-        ).values('month').annotate(
-            total=Sum('fee_vendor')
-        ).order_by('month')
+        monthly_sales = filtered_sales.annotate(month=TruncMonth('date_sale')) \
+            .values('month') \
+            .annotate(total=Sum('fee_vendor')) \
+            .order_by('month')
 
         monthly_sales_dict = {sale['month']: sale['total'] for sale in monthly_sales}
         meses = list(calendar.month_name[1:])
@@ -96,46 +111,62 @@ class DashboardAdminView(LoginRequiredMixin, GroupRequiredMixin, TemplateView):
         for i in range(12):
             month_date = today.replace(day=1) - relativedelta(months=i)
             month_key = timezone.make_aware(datetime(month_date.year, month_date.month, 1))
-            ganancia = monthly_sales_dict.get(month_key, 5000 + (i * 1000))
+            ganancia = monthly_sales_dict.get(month_key, 0)
             ganancias_mensuales_data.insert(0, float(ganancia) if ganancia else 0)
 
         # Top vendedores
-        top_vendors = list(filtered_sales.values('vendor')
+        top_vendors = list(
+            filtered_sales.values(
+                'vendor__username', 'vendor__first_name', 'vendor__last_name'
+            )
             .annotate(total_sales=Sum('fee_vendor'))
-            .order_by('-total_sales')[:3])
+            .order_by('-total_sales')[:3]
+        )
 
-        while len(top_vendors) < 3:
-            top_vendors.append({'vendor': f'Vendedor {len(top_vendors) + 1}', 'total_sales': 5000 - len(top_vendors) * 1000})
+        # Formatear los nombres de los vendedores
+        formatted_top_vendors = [
+            {
+                'vendor': f"{vendor['vendor__first_name']} {vendor['vendor__last_name']}".strip() or vendor['vendor__username'],
+                'total_sales': vendor['total_sales']
+            }
+            for vendor in top_vendors
+        ]
+
+        # Rellenar con datos vacíos si hay menos de 3 vendedores
+        while len(formatted_top_vendors) < 3:
+            formatted_top_vendors.append({'vendor': 'Sin datos', 'total_sales': 0})
 
         # Años disponibles para filtro
         available_years = [date.year for date in closedSales.objects.dates('date_sale', 'year')]
-        semanas_json = json.dumps(semanas, cls=DjangoJSONEncoder)
-        ganancias_semanales_json = json.dumps(ganancias_semanales_data, cls=DjangoJSONEncoder)
-        meses_json = json.dumps(meses, cls=DjangoJSONEncoder)
-        ganancias_mensuales_json = json.dumps(ganancias_mensuales_data, cls=DjangoJSONEncoder)
+        if not available_years:
+            available_years = [today.year]
 
-        # Añadir todos los datos al contexto
+        # Serializar datos para gráficos
         context.update({
             'weekly_revenue': sum(weekly_sales_dict.values()),
             'monthly_revenue': filtered_sales.aggregate(Sum('fee_vendor'))['fee_vendor__sum'] or 0,
-            'top_vendors': top_vendors,
-            'ganancias_semanales': ganancias_semanales_json,
-            'ganancias_mensuales': ganancias_mensuales_json,
-            'semanas': semanas_json,
-            'meses': meses_json,
+            'top_vendors': formatted_top_vendors,
+            'ganancias_semanales': json.dumps(ganancias_semanales_data),
+            'ganancias_mensuales': json.dumps(ganancias_mensuales_data),
+            'semanas': json.dumps(semanas),
+            'meses': json.dumps(meses),
+            'budget_stats': budget_stats,
             'stats': {
-                'total_clients': filtered_sales.values('client').distinct().count() or 10,
-                'total_sales': filtered_sales.count() or 25,
-                'average_sale': filtered_sales.aggregate(avg=Avg('fee_vendor'))['avg'] or 2500
+                'total_clients': filtered_sales.values('client').distinct().count(),
+                'total_sales': filtered_sales.count(),
+                'average_sale': round(filtered_sales.aggregate(avg=Avg('fee_vendor'))['avg'] or 0, 2)
             },
             'available_years': available_years,
             'months': list(enumerate(calendar.month_name[1:], start=1)),
             'selected_year': selected_year,
             'selected_month': selected_month,
             'selected_day': selected_day,
-            'days_range': list(range(1, 32))
+            'days_range': list(range(1, 32)),
+            'has_data': filtered_sales.exists()
         })
+
         return context
+
 #### ---- admins clients -------####
 class AdminsClientList(LoginRequiredMixin, GroupRequiredMixin, ListView):
     model = Client
@@ -200,12 +231,61 @@ class BudgetForm(forms.ModelForm):
             'sale_price', 'special_services', 'vendor', 'provider', 'state'
         ]
 
-class AdminBudgetCreateView(CreateView):
+class AdminBudgetCreateView(LoginRequiredMixin, GroupRequiredMixin,CreateView):
+    allowed_groups = ADMIN_GROUP
     model = Budget
     form_class = BudgetForm
     template_name = 'admins/admins_budgtes/budget_form.html'
     success_url = reverse_lazy('budget_list') 
 
+class AdminBudgetEdit(LoginRequiredMixin, GroupRequiredMixin,UpdateView):
+    model = Budget
+    template_name = 'admins/admins_budgtes/budget_form.html'
+    form_class = BudgetForm
+    success_url = reverse_lazy('budget_list')
+    allowed_groups = ADMIN_GROUP  # Use defined group names
+
+    def form_valid(self, form):
+        budget = form.save()
+        messages.success(self.request, 'Presupuesto actualizado exitosamente.')
+        return redirect(self.success_url)
+
+    def form_invalid(self, form):
+        messages.error(self.request, 'Error al actualizar el presupuesto. Revisa los campos.')
+        return super().form_invalid(form)
+    
+class AdminBudgetDeleteView(LoginRequiredMixin, GroupRequiredMixin, DeleteView):
+    model = Budget
+    template_name = 'admins/admins_budgtes/budget_confirm_delete.html'
+    success_url = reverse_lazy('budget_list')
+    allowed_groups = ADMIN_GROUP
+
+    def get_queryset(self): # Admins can delete all
+        return Budget.objects.all()
+
+    def form_valid(self, form):
+        self.object.delete()  # Delete the object explicitly
+        messages.success(self.request, 'Presupuesto eliminado exitosamente.')
+        return redirect(self.success_url)
+
+    def form_invalid(self, form):
+        messages.error(self.request, 'Error al eliminar el presupuesto.')
+        return super().form_invalid(form)
+
+class AdminClosedSalesList(LoginRequiredMixin, GroupRequiredMixin, ListView):
+    model = closedSales  # Usa el nombre correcto del modelo con CamelCase
+    context_object_name = 'sales'  # Quitado el espacio extra y usado un nombre más claro
+    template_name = 'admins/admins_sales/closed_sales_list.html'
+    paginate_by = 5
+    allowed_groups = ADMIN_GROUP
+
+    def get_queryset(self):
+        return closedSales.objects.all().order_by('-date_sale')  # Ordenado por fecha descendente
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['sales'] = self.get_queryset()  # Usando el mismo nombre que en context_object_name
+        return context
 
 
 

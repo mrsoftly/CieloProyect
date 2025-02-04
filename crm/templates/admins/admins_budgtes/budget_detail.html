@@ -3,46 +3,106 @@
 {% block title %}Detalles del Presupuesto{% endblock %}
 
 {% block content %}
-    <h1>Detalles del Presupuesto</h1>
+<div class="card shadow-sm mt-4">
+    <div class="card-header">
+        <h4 class="card-title">Detalles del Presupuesto</h4>
+    </div>
+    <div class="card-body">
+        <p><strong>Fecha de Emisión:</strong> {{ budget.emission_date }}</p>
+        <p><strong>Vendedor:</strong> {{ budget.vendor.username }}</p>
+        <p><strong>Cliente:</strong> {{ budget.client.first_name }} {{ budget.client.paternal_last_name }} {{ budget.client.maternal_last_name }}</p>
+        <p><strong>Itinerario:</strong> {{ budget.itinerary }}</p>
 
-    {% if budget %}
-    <!-- Card de detalles del presupuesto -->
-    <div class="card shadow-sm mt-4" style="border-radius: 10px;">
-        <div class="card-header" style="background-color: #114fac; color: white;">
-            <h4 class="card-title">Detalles del Presupuesto</h4>
-        </div>
-        <div class="card-body">
-            <p><strong>Fecha de Emisión:</strong> {{ budget.emission_date }}</p>
-            <p><strong>Cliente:</strong> {{ budget.client.first_name }} {{ budget.client.paternal_last_name }} {{ budget.client.maternal_last_name }}</p>
-            <p><strong>Vendedor:</strong> {{ budget.vendor.username }}</p>
-            <p><strong>Itinerario:</strong> {{ budget.itinerary }}</p>
-            <p><strong>Precio Base:</strong> ${{ budget.base_price }}</p>
-            <p><strong>Precio de Venta:</strong> ${{ budget.sale_price }}</p>
-            <p><strong>Estado:</strong> {{ budget.get_state_display }}</p>
+        <table class="table custom-table mt-3">
+            <thead>
+                <tr>
+                    <th>Concepto</th>
+                    <th>Monto</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Precio Base</td>
+                    <td>${{ budget.base_price }}</td>
+                </tr>
+                <tr>
+                    <td>Costo Emisión</td>
+                    <td>${{ budget.base_price }}</td>
+                </tr>
+                <tr>
+                    <td>Servicios Especiales</td>
+                    <td>${{ budget.special_services }}</td>
+                </tr>
+                <tr>
+                    <td>Precio de Venta</td>
+                    <td>${{ budget.sale_price }}</td>
+                </tr>
+                <tr>
+                    <td>Fee Cielo</td>
+                    <td>${{ budget.cielo_fee }}</td>
+                </tr>
+                <tr>
+                    <td>Fee Vendedor</td>
+                    <td>${{ budget.vendor_fee }}</td>
+                </tr>
+            </tbody>
+        </table>
 
-            <!-- Botones de acción -->
-    {% else %}
-    <p>Presupuesto no encontrado.</p>
-    {% endif %}
-{% endblock %}
+        <p><strong>Estado:</strong> {{ budget.get_state_display }}</p>
+        <a class="btn btn-secondary" href="{% url 'budget_list' %}" role="button" aria-label="Volver">Volver</a>
+        <a class="btn btn-info" href="{% url 'budget_edit' budget.id  %}" role="button" aria-label="Modificar presupuesto">Modificar</a>
+    </div>
+
+</div>
 
 <style>
-    /* Estilos adicionales para la card */
     .card {
         border-radius: 10px;
         overflow: hidden;
         margin-top: 20px;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
     }
 
     .card-header {
         background-color: #114fac;
         color: white;
         text-align: center;
+        padding: 10px;
+        font-size: 18px;
+        font-weight: bold;
     }
 
     .card-body p {
         font-size: 16px;
         line-height: 1.6;
+    }
+
+    /* Estilos para la tabla */
+    .custom-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+    }
+
+    .custom-table th {
+        background-color: #114fac;
+        color: white;
+        text-align: left;
+        padding: 10px;
+        font-weight: bold;
+    }
+
+    .custom-table td {
+        padding: 10px;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .custom-table tr:nth-child(even) {
+        background-color: #f8f9fa;
+    }
+
+    .custom-table tr:hover {
+        background-color: #e9ecef;
     }
 
     .btn {
@@ -60,8 +120,6 @@
         background-color: #17a2b8;
         color: white;
     }
-
-    .mt-4 {
-        margin-top: 20px;
-    }
 </style>
+
+{%endblock%}

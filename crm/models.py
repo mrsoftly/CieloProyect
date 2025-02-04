@@ -73,16 +73,39 @@ class Budget(models.Model):
         return sale_fee - cielo_fee if sale_fee is not None and cielo_fee is not None else 0
 
     def save(self, *args, **kwargs):
-        self.cost_price = self.calculate_cost_price()
-        self.sale_fee = self.calculate_sale_fee()
-        self.cielo_fee = self.calculate_cielo_fee()
-        self.vendor_fee = self.calculate_vendor_fee()
-        super().save(*args, **kwargs)
+        try:
+            creating_closed_sale = False
+            if self.pk:
+                old_budget = Budget.objects.get(pk=self.pk)
+                if old_budget.state == "pendiente" and self.state == "aceptado":
+                    creating_closed_sale = True
+
+            self.cost_price = self.calculate_cost_price()
+            self.sale_fee = self.calculate_sale_fee()
+            self.cielo_fee = self.calculate_cielo_fee()
+            self.vendor_fee = self.calculate_vendor_fee()
+
+            super().save(*args, **kwargs)
+
+            if creating_closed_sale:
+                closedSales.objects.create(
+                    budget=self,
+                    client=self.client,
+                    vendor=self.vendor,  # Ahora es una FK
+                    sales_price=self.sale_price,
+                    fee_sale=self.sale_fee,
+                    fee_cielo=self.cielo_fee,
+                    fee_vendor=self.vendor_fee,
+                    paid="Pendiente"
+                )
+        except Exception as e:
+            print(f"Error al guardar el presupuesto o crear la venta cerrada: {e}")
+            raise
 
 class closedSales(models.Model):
     budget = models.OneToOneField('Budget', on_delete=models.CASCADE, related_name='venta')
     client = models.ForeignKey('Client', on_delete=models.CASCADE)
-    vendor = models.CharField(max_length=50)
+    vendor = models.ForeignKey(User, on_delete=models.CASCADE)  # Cambiado a ForeignKey
     sales_price = models.DecimalField(max_digits=10, decimal_places=2)
     fee_sale = models.DecimalField(max_digits=10, decimal_places=2)
     fee_cielo = models.DecimalField(max_digits=10, decimal_places=2)

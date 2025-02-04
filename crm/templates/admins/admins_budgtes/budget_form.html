@@ -37,24 +37,9 @@
                             {% endfor %}
                         </div>
 
-                        <!-- Campos Calculados -->
-                        <div class="row">
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">Costo Total (Calculado)</label>
-                                <input type="text" class="form-control" id="calculated-cost-price" disabled>
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">Fee de Venta (Calculado)</label>
-                                <input type="text" class="form-control" id="calculated-sale-fee" disabled>
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">Fee de Cielo (Calculado)</label>
-                                <input type="text" class="form-control" id="calculated-cielo-fee" disabled>
-                            </div>
-                        </div>
-
+                       
                         <div class="d-flex justify-content-between mt-4">
-                            <a href="{% url 'budget_list' %}" class="btn btn-secondary">Cancelar</a>
+                            <a href="{% url 'budget_list' %}" class="btn btn-danger">Cancelar</a>
                             <button type="submit" class="btn btn-primary">
                                 {% if form.instance.pk %}Actualizar{% else %}Guardar{% endif %} Presupuesto
                             </button>
