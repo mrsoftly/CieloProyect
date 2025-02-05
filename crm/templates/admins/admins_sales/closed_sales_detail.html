@@ -1,0 +1,110 @@
+{% extends 'base2.html' %}
+
+{% block title %}Detalles de la Venta - {{ sale.client }}{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm mt-4">
+    <div class="card-header">
+        <h4 class="card-title">Detalles de la Venta</h4>
+    </div>
+    <div class="card-body">
+        <p><strong>Vendedor: </strong>{{ sales.vendor }}</p>
+        <p><strong>Cliente: </strong>{{ sales.client }}</p>
+        <p><strong>Método de pago: </strong>{{ sales.paid }}</p>
+
+        <table class="table custom-table mt-3">
+            <thead>
+                <tr>
+                    <th>Concepto</th>
+                    <th>Monto</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Precio de Venta</td>
+                    <td>{{ sales.sales_price }}</td>
+                </tr>
+                <tr>
+                    <td>Tarifa de Venta</td>
+                    <td>{{ sales.fee_sale }}</td>
+                </tr>
+                <tr>
+                    <td>Tarifa del Vendedor</td>
+                    <td>{{ sales.fee_vendor }}</td>
+                </tr>
+            </tbody>
+        </table>
+        <a class="btn btn-secondary" href="{%url 'closedSales_list'%}"role="button" aria-label="">Volver</a>
+        <a class="btn btn-info" href=""role="button" aria-label="">Modificar</a>
+    </div>
+    
+</div>
+
+<style>
+    .card {
+        border-radius: 10px;
+        overflow: hidden;
+        margin-top: 20px;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-header {
+        background-color: #114fac;
+        color: white;
+        text-align: center;
+        padding: 10px;
+        font-size: 18px;
+        font-weight: bold;
+    }
+
+    .card-body p {
+        font-size: 16px;
+        line-height: 1.6;
+    }
+
+    /* Estilos para la tabla */
+    .custom-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+    }
+
+    .custom-table th {
+        background-color: #114fac;
+        color: white;
+        text-align: left;
+        padding: 10px;
+        font-weight: bold;
+    }
+
+    .custom-table td {
+        padding: 10px;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .custom-table tr:nth-child(even) {
+        background-color: #f8f9fa;
+    }
+
+    .custom-table tr:hover {
+        background-color: #e9ecef;
+    }
+
+    .btn {
+        border-radius: 5px;
+        padding: 8px 15px;
+        font-size: 14px;
+    }
+
+    .btn-secondary {
+        background-color: #6c757d;
+        color: white;
+    }
+
+    .btn-info {
+        background-color: #17a2b8;
+        color: white;
+    }
+</style>
+
+{% endblock %}

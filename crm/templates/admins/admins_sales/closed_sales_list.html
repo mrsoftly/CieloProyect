@@ -13,7 +13,7 @@
                         <th>Cliente</th>
                         <th>Vendedor</th>
                         <th>Precio de Venta</th>
-                        <th>Estado de Pago</th>
+                        <th>Metodo de Pago</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
@@ -25,9 +25,9 @@
                             <td>${{ sale.sales_price }}</td>
                             <td>{{ sale.paid }}</td>
                             <td>
-                                <a href="" class="btn btn-info btn-sm">Ver</a>
-                                    <a href="" class="btn btn-warning btn-sm">Editar</a>
-                                    <a href="" class="btn btn-danger btn-sm">Eliminar</a>
+                                <a class="btn btn-primary" href="{% url 'closedSales_details' sale.id %}" role="button" aria-label="Ver venta">Ver</a>
+                                <a class="btn btn-info" href="{% url 'closedSales_edit' sale.id %}"role="button" aria-label="Modificar venta">Modificar</a>
+                                <a class="btn btn-danger" href="{% url 'closedSales_delete' sale.id %}" role="button" aria-label="Eliminar venta">Eliminar</a>  
                                 
                             </td>
                         </tr>

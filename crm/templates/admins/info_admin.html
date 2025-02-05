@@ -47,16 +47,8 @@
         </div>
     </form>
 
-    <div class="row g-4">
-        <div class="col-lg-3 col-md-6">
-            <div class="card card-primary">
-                <div class="card-body">
-                    <h6 class="card-title">Presupuestos Recibidos</h6>
-                    <h2 class="card-number">{{ budget_stats.total }}</h2>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-3 col-md-6">
+    <div class="row g-2">
+        <div class="col-lg-4 col-md-6">
             <div class="card card-success">
                 <div class="card-body">
                     <h6 class="card-title">Presupuestos Aceptados</h6>
@@ -64,7 +56,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-lg-3 col-md-6">
+        <div class="col-lg-4 col-md-6">
             <div class="card bg-danger text-white">
                 <div class="card-body">
                     <h6 class="card-title">Presupuestos Rechazados</h6>
@@ -72,18 +64,33 @@
                 </div>
             </div>
         </div>
+        <div class="col-lg-4 col-md-6">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h6 class="card-title">Total presupuestos</h6>
+                    <h2 class="card-number">{{ budget_stats.total }}</h2>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="row mb-4">
+    <div class="row mb-4 py-4">
+        <!-- Gráfico de Ventas por Día de la Semana -->
         <div class="col-md-6">
-            <canvas id="gananciasSemanalesChart"></canvas>
+            <div class="chart-container">
+                <canvas id="ventasPorDiaChart"></canvas>
+            </div>
         </div>
+    
+        <!-- Gráfico de Ganancias Mensuales -->
         <div class="col-md-6">
-            <canvas id="gananciasMensualesChart"></canvas>
+            <div class="chart-container">
+                <canvas id="gananciasMensualesChart"></canvas>
+            </div>
         </div>
     </div>
-
-    <div class="row mb-4">
+    
+    <div class="row mb-4 py-4">
         <div class="col-lg-12">
             <div class="card card-info">
                 <div class="card-body">
@@ -92,7 +99,7 @@
                         {% for vendor in top_vendors %}
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             <span class="vendor-name">{{ vendor.vendor }}</span>
-                            <span class="badge bg-success">${{ vendor.total_sales }}</span>
+                            <span class="badge bg-success">${{ vendor.total_sales|floatformat:2 }}</span>
                         </li>
                         {% endfor %}
                     </ul>
@@ -101,31 +108,126 @@
         </div>
     </div>
 </div>
-
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <script>
-    const semanasData = {{ semanas|safe }};
-    const gananciasSemanalesData = {{ ganancias_semanales|safe }};
+    const diasSemana = {{ dias_semana|safe }};
+    const ventasPorDia = {{ ventas_por_dia|safe }};
     const mesesData = {{ meses|safe }};
     const gananciasMensualesData = {{ ganancias_mensuales|safe }};
+    
+    // Comprobación de los datos para asegurar que son correctos
+    console.log("Días de la semana:", diasSemana);
+    console.log("Ventas por día:", ventasPorDia);
 
     const chartConfig = {
         responsive: true,
-        plugins: { legend: { position: 'top' } },
-        scales: { y: { beginAtZero: true, ticks: { callback: (value) => '$' + value } } }
+        maintainAspectRatio: false,
+        plugins: { 
+            legend: { 
+                position: 'top',
+                labels: {
+                    font: {
+                        size: 14
+                    }
+                }
+            },
+            tooltip: {
+                callbacks: {
+                    label: (context) => {
+                        const value = context.raw;
+                        return '$' + value.toLocaleString();
+                    }
+                }
+            }
+        },
+        scales: { 
+            y: { 
+                beginAtZero: true,
+                ticks: { 
+                    callback: (value) => '$' + value.toLocaleString(),
+                    font: {
+                        size: 12
+                    }
+                },
+                title: {
+                    display: true,
+                    text: 'Monto en $',
+                    font: { size: 14 }
+                }
+            },
+            x: {
+                ticks: {
+                    font: {
+                        size: 12
+                    }
+                },
+                title: {
+                    display: true,
+                    text: 'Días de la Semana',
+                    font: { size: 14 }
+                }
+            }
+        }
     };
 
-    new Chart(document.getElementById('gananciasSemanalesChart'), {
-        type: 'line',
-        data: { labels: semanasData, datasets: [{ label: 'Ganancias Semanales', data: gananciasSemanalesData, borderColor: '#2563eb', backgroundColor: 'rgba(37, 99, 235, 0.1)', tension: 0.4, fill: true }] },
-        options: chartConfig
-    });
-    
-    new Chart(document.getElementById('gananciasMensualesChart'), {
-        type: 'line',
-        data: { labels: mesesData, datasets: [{ label: 'Ganancias Mensuales', data: gananciasMensualesData, borderColor: '#059669', backgroundColor: 'rgba(5, 150, 105, 0.1)', tension: 0.4, fill: true }] },
-        options: chartConfig
-    });
+    // Verificación de datos antes de crear los gráficos
+    if (diasSemana.length && ventasPorDia.length) {
+        new Chart(document.getElementById('ventasPorDiaChart'), {
+            type: 'bar',
+            data: { 
+                labels: diasSemana,
+                datasets: [{
+                    label: 'Ventas por Día de la Semana',
+                    data: ventasPorDia,
+                    backgroundColor: 'rgba(37, 99, 235, 0.2)',
+                    borderColor: '#2563eb',
+                    borderWidth: 2,
+                    borderRadius: 4,
+                    hoverBackgroundColor: 'rgba(37, 99, 235, 0.4)'
+                }]
+            },
+            options: {
+                ...chartConfig,
+                plugins: {
+                    ...chartConfig.plugins,
+                    title: {
+                        display: true,
+                        text: 'Ventas por Día de la Semana',
+                        font: {
+                            size: 16
+                        }
+                    }
+                }
+            }
+        });
+    } else {
+        console.error('No se han recibido datos válidos para el gráfico de ventas por día.');
+    }
+
+    // Gráfico de Ganancias Mensuales
+    if (mesesData.length && gananciasMensualesData.length) {
+        new Chart(document.getElementById('gananciasMensualesChart'), {
+            type: 'line',
+            data: { 
+                labels: mesesData,
+                datasets: [{
+                    label: 'Ganancias Mensuales',
+                    data: gananciasMensualesData,
+                    borderColor: '#059669',
+                    backgroundColor: 'rgba(5, 150, 105, 0.1)',
+                    tension: 0.4,
+                    fill: true,
+                    borderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: chartConfig
+        });
+    } else {
+        console.error('No se han recibido datos válidos para el gráfico de ganancias mensuales.');
+    }
 </script>
 
 <style>
@@ -141,23 +243,6 @@
     body {
         background: #f8fafc;
         font-family: system-ui, -apple-system, sans-serif;
-    }
-    
-    .navbar {
-        background-color: var(--primary-color);
-        padding: 1rem;
-        margin-bottom: 2rem;
-    }   
-    
-    .navbar-brand {
-        color: var(--text-light);
-        font-weight: 600;
-        text-decoration: none;
-    }
-    
-    .welcome-message {
-        color: var(--text-light);
-        font-size: 1.1rem;
     }
     
     .card {
@@ -225,7 +310,7 @@
     }
     
     .list-group-item:hover {
-        background-color: #e2e8f0; /* Slight hover effect */
+        background-color: #e2e8f0;
     }
     
     .vendor-name {
@@ -240,7 +325,13 @@
         background-color: var(--success-color);
         color: var(--text-light);
         font-weight: 600;
-        border-radius: 2rem;
+        border-radius: 50px;
     }
-    </style>
+    
+    .chart-container {
+        width: 100%;
+        height: 300px;
+    }
+</style>
+
 {% endblock %}

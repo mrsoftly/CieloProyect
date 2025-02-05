@@ -2,6 +2,8 @@ from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator  # Import MaxValueValidator
 from django.contrib.auth.models import User  # Import User
 from decimal import Decimal 
+import logging
+logger = logging.getLogger(__name__)
 
 class Client(models.Model):
     first_name = models.CharField(max_length=60, verbose_name="Nombre", help_text="Nombre del cliente")
@@ -41,7 +43,7 @@ class Budget(models.Model):
     base_price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0), MaxValueValidator(99999999.99)])
     emisor_cost = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0), MaxValueValidator(99999999.99)])
     sale_price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0), MaxValueValidator(99999999.99)])
-    special_services = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0), MaxValueValidator(99999999.99)])
+    special_services = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     vendor = models.ForeignKey(User, on_delete=models.CASCADE)
     provider = models.CharField(max_length=200)
     state = models.CharField(max_length=10, choices=STATE, default='pendiente')
@@ -52,32 +54,25 @@ class Budget(models.Model):
     vendor_fee = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     def calculate_cost_price(self):
-        base_price = self.base_price if self.base_price is not None else 0
-        emisor_cost = self.emisor_cost if self.emisor_cost is not None else 0
-        return base_price + emisor_cost
+        return (self.base_price or 0) + (self.emisor_cost or 0)
 
     def calculate_sale_fee(self):
-        sale_price = self.sale_price if self.sale_price is not None else 0
-        cost_price = self.calculate_cost_price()
-        special_services = self.special_services if self.special_services is not None else 0
-        return (sale_price - cost_price) + special_services
+        return (self.sale_price or 0) - self.calculate_cost_price() + (self.special_services or 0)
 
     def calculate_cielo_fee(self):
         sale_fee = self.calculate_sale_fee()
-        # Asegúrate de usar Decimal para las operaciones
-        return sale_fee - (Decimal(sale_fee) * Decimal('0.13')) if sale_fee is not None else 0
+        return sale_fee - (Decimal(sale_fee) * Decimal('0.13')) if sale_fee else 0
 
     def calculate_vendor_fee(self):
-        sale_fee = self.calculate_sale_fee()
-        cielo_fee = self.calculate_cielo_fee()
-        return sale_fee - cielo_fee if sale_fee is not None and cielo_fee is not None else 0
+        return self.calculate_sale_fee() - self.calculate_cielo_fee()
 
     def save(self, *args, **kwargs):
         try:
             creating_closed_sale = False
+            
             if self.pk:
                 old_budget = Budget.objects.get(pk=self.pk)
-                if old_budget.state == "pendiente" and self.state == "aceptado":
+                if old_budget.state != "aceptado" and self.state == "aceptado":
                     creating_closed_sale = True
 
             self.cost_price = self.calculate_cost_price()
@@ -88,24 +83,36 @@ class Budget(models.Model):
             super().save(*args, **kwargs)
 
             if creating_closed_sale:
-                closedSales.objects.create(
+                closed_sale, created = closedSales.objects.get_or_create(
                     budget=self,
-                    client=self.client,
-                    vendor=self.vendor,  # Ahora es una FK
-                    sales_price=self.sale_price,
-                    fee_sale=self.sale_fee,
-                    fee_cielo=self.cielo_fee,
-                    fee_vendor=self.vendor_fee,
-                    paid="Pendiente"
+                    defaults={
+                        'client': self.client,
+                        'vendor': self.vendor,
+                        'sales_price': self.sale_price,
+                        'fee_sale': self.sale_fee,
+                        'fee_cielo': self.cielo_fee,
+                        'fee_vendor': self.vendor_fee,
+                        'paid': "Pendiente"
+                    }
                 )
+                if not created:
+                    logger.info(f"ClosedSale ya existía para el presupuesto {self.pk}, actualizando datos...")
+                    closed_sale.client = self.client
+                    closed_sale.vendor = self.vendor
+                    closed_sale.sales_price = self.sale_price
+                    closed_sale.fee_sale = self.sale_fee
+                    closed_sale.fee_cielo = self.cielo_fee
+                    closed_sale.fee_vendor = self.vendor_fee
+                    closed_sale.save()
+
         except Exception as e:
-            print(f"Error al guardar el presupuesto o crear la venta cerrada: {e}")
+            logger.error(f"Error al guardar el presupuesto o crear la venta cerrada: {e}")
             raise
 
 class closedSales(models.Model):
     budget = models.OneToOneField('Budget', on_delete=models.CASCADE, related_name='venta')
     client = models.ForeignKey('Client', on_delete=models.CASCADE)
-    vendor = models.ForeignKey(User, on_delete=models.CASCADE)  # Cambiado a ForeignKey
+    vendor = models.ForeignKey(User, on_delete=models.CASCADE)
     sales_price = models.DecimalField(max_digits=10, decimal_places=2)
     fee_sale = models.DecimalField(max_digits=10, decimal_places=2)
     fee_cielo = models.DecimalField(max_digits=10, decimal_places=2)

@@ -24,6 +24,7 @@ urlpatterns = [
     ## ----------- end admins budgets urls ------- ###
 
     path('admins_closedSales/',views.AdminClosedSalesList.as_view(),name = 'closedSales_list'),
-
-
+    path('admins_closedSales/details/<int:pk>',views.AdminclosedSalesDetail.as_view(),name='closedSales_details'),
+    path('admins_closedSales/edit/<int:pk>',views.AdminsclosedSalesUpdate.as_view(),name='closedSales_edit'),
+    path('admins_closedSales/delete/<int:pk>',views.AdminclosedSaleDelete.as_view(),name='closedSales_delete'),
 ]

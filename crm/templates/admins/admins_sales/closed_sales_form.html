@@ -1,0 +1,42 @@
+{% extends 'base2.html' %}
+
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header">
+            <h4>Editar Venta</h4>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="mb-3">
+                    <label class="form-label">Precio de Venta</label>
+                    {{ form.sales_price }}
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Tarifa de Venta</label>
+                    {{ form.fee_sale }}
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Tarifa de Cielo</label>
+                    {{ form.fee_cielo }}
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Tarifa del Vendedor</label>
+                    {{ form.fee_vendor }}
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Método de Pago</label>
+                    {{ form.paid }}
+                </div>
+                <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                <a href="{% url 'closedSales_list' %}" class="btn btn-secondary">Cancelar</a>
+            </form>
+        </div>
+    </div>
+</div>
+<!-- Mostrar mensajes de éxito o error -->
+
+{% endblock %}
